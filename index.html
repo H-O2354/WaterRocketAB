@@ -59,6 +59,7 @@ body {
 /* Header */
 header {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     padding: 10px 20px;
@@ -67,6 +68,8 @@ header {
 }
 
 header h1 {
+    white-space: nowrap;
+    font-size: 1.2rem;
     font-size: 1.5rem;
     color: var(--accent);
     text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
@@ -78,7 +81,7 @@ header h1 {
     color: var(--accent);
     border: 1px solid var(--accent);
     padding: 8px 15px;
-    margin-left: 10px;
+    margin: 5px 0 5px 10px;
     font-family: var(--font-mono);
     cursor: pointer;
     transition: all 0.2s;
@@ -450,11 +453,11 @@ legend {
     margin-bottom: 5px;
 }
 .tree-math {
-    background: rgba(10, 16, 24, 0.5);
+    background: transparent; color: var(--accent);
     padding: 2px 5px;
     border-radius: 3px;
     font-family: var(--font-mono);
-    color: #a0aec0;
+
 }
 
 
@@ -525,22 +528,19 @@ fieldset {
 <body>
 
     <header>
-        <h1><span data-i18n="TITLE">WATER ROCKET TELEMETRY DASHBOARD</span></h1>
+        <h1>BẢNG ĐIỀU KHIỂN ĐO LƯỜNG TÊN LỬA NƯỚC</h1>
 
         <div class="header-controls">
-            <select id="sel-lang" onchange="setLanguage(this.value)" style="margin-right:10px; padding:5px; background:var(--bg-input); color:var(--text-main); border:1px solid var(--accent); font-family:var(--font-mono);">
-                <option value="vi">🇻🇳 Tiếng Việt</option>
-                <option value="en">🇬🇧 English</option>
-            </select>
+
             <select id="sel-theme" onchange="setTheme(this.value)" style="margin-right:10px; padding:5px; background:var(--bg-input); color:var(--text-main); border:1px solid var(--accent); font-family:var(--font-mono);">
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
                 <option value="system">System</option>
             </select>
 
-            <button id="btn-docs" onclick="document.getElementById('docs-modal').style.display='block'"><span data-i18n="BTN_DOCS">TÀI LIỆU VẬT LÝ & TOÁN HỌC</span></button>
-            <button id="btn-arch" onclick="document.getElementById('arch-modal').style.display='block'"><span data-i18n="BTN_ARCH">KIẾN TRÚC HỆ THỐNG</span></button>
-            <button id="btn-force-run" onclick="runSimUI()"><span data-i18n="BTN_RECALC">FORCE RECALCULATE</span></button>
+            <button id="btn-docs" onclick="document.getElementById('docs-modal').style.display='block'">TÀI LIỆU VẬT LÝ & TOÁN HỌC</button>
+            <button id="btn-arch" onclick="document.getElementById('arch-modal').style.display='block'">KIẾN TRÚC HỆ THỐNG</button>
+            <button id="btn-force-run" onclick="runSimUI()">BẮT BUỘC TÍNH TOÁN LẠI</button>
         </div>
     </header>
 
@@ -549,239 +549,239 @@ fieldset {
         <!-- LEFT PANE: CONTROLS -->
         <aside id="controls">
             <div class="mode-switch">
-                <label for="in-mode"><span data-i18n="L_MODE">ENGINE MODE</span></label>
+                <label for="in-mode">CHẾ ĐỘ ĐỘNG CƠ</label>
                 <select id="in-mode" onchange="toggleMode(); runSimUI();">
-                    <option value="AIR"><span data-i18n="MODE_AIR">AIR PUMP MODE</span></option>
-                    <option value="CHEM"><span data-i18n="MODE_CHEM">CHEMICAL REACTION</span></option>
+                    <option value="AIR">CHẾ ĐỘ BƠM KHÍ</option>
+                    <option value="CHEM">PHẢN ỨNG HÓA HỌC</option>
                 </select>
             </div>
 
             <fieldset id="fs-geometry">
-                <legend><span data-i18n="L_GEO">Geometry & Mass</span></legend>
+                <legend>Hình học & Khối lượng</legend>
                 <div class="input-group">
-                    <label><span data-i18n="L_VBOT">Bottle Volume (L)</span> <span class="help" title="Total internal volume of the pressure vessel.">?</span></label>
+                    <label>Thể tích chai (L) <span class="help" title="Total internal volume of the pressure vessel.">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-v-bottle" value="0.5" step="0.1" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_LENG">Total Length (mm)</span> <span class="help" title="Total length of the rocket from nose to nozzle.">?</span></label>
+                    <label>Chiều dài tổng thể (mm) <span class="help" title="Total length of the rocket from nose to nozzle.">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-l-rocket" value="60" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_DIA">Body Diameter (mm)</span> <span class="help" title="Outer diameter of the main body tube.">?</span></label>
+                    <label>Đường kính thân (mm) <span class="help" title="Outer diameter of the main body tube.">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-d-body" value="65" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_MEMP">Empty Mass (kg)</span> <span class="help" title="Mass of the bottle and fins without water/ballast.">?</span></label>
+                    <label>Khối lượng rỗng (kg) <span class="help" title="Mass of the bottle and fins without water/ballast.">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-m-empty" value="0.1" step="0.01" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_MBAL">Nose Ballast (kg)</span> <span class="help" title="Mass added to the nose cone for stability.">?</span></label>
+                    <label>Khối lượng tạ mũi (kg) <span class="help" title="Mass added to the nose cone for stability.">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-m-ballast" value="0.005" step="0.01" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_FROOT">Fin Root Chord (mm)</span> <span class="help" title="Chiều dài chân cánh">?</span></label>
+                    <label>Chiều dài chân cánh (mm) <span class="help" title="Chiều dài chân cánh">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-fin-root" value="25" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_FTIP">Fin Tip Chord (mm)</span> <span class="help" title="Chiều dài đỉnh cánh">?</span></label>
+                    <label>Chiều dài đỉnh cánh (mm) <span class="help" title="Chiều dài đỉnh cánh">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-fin-tip" value="25" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_FSPAN">Fin Span (mm)</span> <span class="help" title="Sải cánh">?</span></label>
+                    <label>Sải cánh (mm) <span class="help" title="Sải cánh">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-fin-span" value="25" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
             </fieldset>
 
             <fieldset id="fs-air">
-                <legend><span data-i18n="L_ENERGY_AIR">Energy & Propellant (AIR)</span></legend>
+                <legend>Năng lượng & Nhiên liệu (AIR)</legend>
                 <div class="input-group">
-                    <label><span data-i18n="L_WRATIO">Water Ratio (%)</span> <span class="help" title="Percentage of bottle volume filled with water.">?</span></label>
+                    <label>Tỷ lệ đổ nước (%) <span class="help" title="Percentage of bottle volume filled with water.">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-water-ratio" value="33" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_PUMP">Initial Pressure (PSI)</span> <span class="help" title="Gauge pressure inside the bottle before launch.">?</span></label>
+                    <label>Áp suất bơm ban đầu (PSI) <span class="help" title="Gauge pressure inside the bottle before launch.">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-pressure" value="60" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_BURST">Burst Limit (PSI)</span> <span class="help" title="Maximum safe pressure before structural failure.">?</span></label>
+                    <label>Áp suất nổ giới hạn (PSI) <span class="help" title="Maximum safe pressure before structural failure.">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-burst" value="120" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
             </fieldset>
 
             <fieldset id="fs-chem" style="display: none;">
-                <legend><span data-i18n="L_ENERGY_CHEM">Chemical Reaction (CHEM)</span></legend>
+                <legend>Phản ứng Hóa học (CHEM)</legend>
                 <div class="input-group">
-                    <label><span data-i18n="L_STYPE">Carbonate Type</span></label>
+                    <label>Loại muối (g/mol)</label>
                     <select id="in-salt-type" onchange="runSimUI()">
-                        <option value="84"><span data-i18n="OPT_BAKING">Baking Soda (84 g/mol)</span></option>
-                        <option value="106"><span data-i18n="OPT_WASHING">Washing Soda (106 g/mol)</span></option>
+                        <option value="84">Baking Soda (84 g/mol)</option>
+                        <option value="106">Washing Soda (106 g/mol)</option>
                     </select>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_MSALT">Mass of Salt (g)</span> <span class="help" title="Khối lượng muối">?</span></label>
+                    <label>Khối lượng muối (g) <span class="help" title="Khối lượng muối">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-mass-salt" value="7.6" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_VVINEGAR">Volume of Vinegar (ml)</span> <span class="help" title="Thể tích giấm">?</span></label>
+                    <label>Thể tích giấm (ml) <span class="help" title="Thể tích giấm">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-vol-vinegar" value="109" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_ACID">Acid Conc. (% m/v)</span> <span class="help" title="Nồng độ Acid">?</span></label>
+                    <label>Nồng độ Acid (% m/v) <span class="help" title="Nồng độ Acid">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-acid-conc" value="5" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_GEFF">Gas Yield Eff. (%)</span> <span class="help" title="Hiệu suất sinh khí">?</span></label>
+                    <label>Hiệu suất sinh khí (%) <span class="help" title="Hiệu suất sinh khí">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-gas-eff" value="85" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_POPOFF">Pop-off Pressure (PSI)</span> <span class="help" title="Áp suất bung nút">?</span></label>
+                    <label>Áp suất bung nút (PSI) <span class="help" title="Áp suất bung nút">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-popoff" value="70" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
             </fieldset>
 
             <fieldset id="fs-thrust">
-                <legend><span data-i18n="L_THRUST_SYS">Thrust System</span></legend>
+                <legend>Hệ thống Lực đẩy</legend>
                 <div class="input-group">
-                    <label><span data-i18n="L_NOZZLE">Nozzle Diameter (mm)</span> <span class="help" title="Đường kính vòi phun">?</span></label>
+                    <label>Đường kính Vòi phun (mm) <span class="help" title="Đường kính vòi phun">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-d-nozzle" value="21" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_LTUBE">Launch Tube Length (m)</span> <span class="help" title="Chiều dài ống dẫn hướng">?</span></label>
+                    <label>Chiều dài ống phóng (m) <span class="help" title="Chiều dài ống dẫn hướng">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-l-tube" value="0.5" step="0.1" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_DTUBE">Launch Tube OD (mm)</span> <span class="help" title="Đường kính ngoài ống dẫn">?</span></label>
+                    <label>Đường kính ngoài ống phóng (mm) <span class="help" title="Đường kính ngoài ống dẫn">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-d-tube" value="21" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
 
 
                 <div class="input-group" id="card-friction" style="display: none; background: rgba(255, 157, 0, 0.1); padding: 5px; border-left: 3px solid var(--accent);">
-                    <label style="color: var(--accent); font-weight: bold; margin-bottom:0;"><span data-i18n="L_CORK">-> Cork Friction REQD</span> <span class="help" title="Ma sát nút bần yêu cầu">?</span></label>
+                    <label style="color: var(--accent); font-weight: bold; margin-bottom:0;">-> Yêu cầu Ma sát Nút bần <span class="help" title="Ma sát nút bần yêu cầu">?</span></label>
                     <div id="val-cork-friction" style="color: var(--accent); font-weight: bold; font-size: 1.1rem; text-align:right;">0.00 kgf</div>
                 </div>
             </fieldset>
 
             <fieldset id="fs-env">
-                <legend><span data-i18n="L_TRAJ">Trajectory & Environment</span></legend>
+                <legend>Quỹ đạo & Môi trường</legend>
                 <div class="input-group">
-                    <label><span data-i18n="L_ANGLE">Launch Angle (Deg)</span> <span class="help" title="Angle from horizontal. 90 is straight up.">?</span></label>
+                    <label>Góc phóng (Độ) <span class="help" title="Angle from horizontal. 90 is straight up.">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-angle" value="45" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_CD">Drag Coefficient (Cd)</span> <span class="help" title="Hệ số cản không khí">?</span></label>
+                    <label>Hệ số cản không khí (Cd) <span class="help" title="Hệ số cản không khí">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-cd" value="0.45" step="0.01" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_TEMP">Air Temperature (C)</span> <span class="help" title="Nhiệt độ môi trường">?</span></label>
+                    <label>Nhiệt độ không khí (C) <span class="help" title="Nhiệt độ môi trường">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-temp" value="27" onchange="runSimUI()">
-                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                        <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label><span data-i18n="L_DENS">Air Density (kg/m³)</span> <span class="help" title="Khối lượng riêng không khí">?</span></label>
+                    <label>Mật độ không khí (kg/m³) <span class="help" title="Khối lượng riêng không khí">?</span></label>
                     <select id="in-env" onchange="runSimUI()">
-                        <option value="1.225"><span data-i18n="OPT_SEA">1.225 (Sea Level)</span></option>
-                        <option value="1.056"><span data-i18n="OPT_HIGH">1.056 (High Altitude)</span></option>
+                        <option value="1.225">1.225 (Ngang mực nước biển)</option>
+                        <option value="1.056">1.056 (Trên vùng núi cao)</option>
                     </select>
                 </div>
             </fieldset>
 
             <div style="padding: 20px 0; text-align: center;">
-                <button class="action-btn" onclick="optimizeRange()"><span data-i18n="BTN_OPT">RUN CMA-ES OPTIMIZER</span></button>
+                <button class="action-btn" onclick="optimizeRange()">CHẠY TỐI ƯU HÓA CMA-ES</button>
             </div>
         </aside>
 
         <!-- RIGHT PANE: TELEMETRY -->
         <main id="telemetry">
-            <div id="sys-status" class="status-banner"><span data-i18n="STAT_NOMINAL">SYSTEM STATUS: NOMINAL</span></div>
+            <div id="sys-status" class="status-banner">TRẠNG THÁI HỆ THỐNG: BÌNH THƯỜNG</div>
 
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-label"><span data-i18n="C_ACTRANGE">Actual Range</span></div>
+                    <div class="stat-label">Tầm xa Thực tế</div>
                     <div class="stat-value" id="val-range">0.00 m</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label"><span data-i18n="C_IDEAL">Ideal Range (Vacuum)</span></div>
+                    <div class="stat-label">Tầm xa Lý thuyết (Chân không)</div>
                     <div class="stat-value" id="val-ideal-range">0.00 m</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label"><span data-i18n="C_APOGEE">Apogee (Max Alt)</span></div>
+                    <div class="stat-label">Đỉnh quỹ đạo (Cao tối đa)</div>
                     <div class="stat-value" id="val-apogee">0.00 m</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label"><span data-i18n="C_MAXV">Max Velocity</span></div>
+                    <div class="stat-label">Vận tốc tối đa</div>
                     <div class="stat-value" id="val-max-v">0.00 m/s</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label"><span data-i18n="C_FLIGHT">Flight Time</span></div>
+                    <div class="stat-label">Thời gian bay</div>
                     <div class="stat-value" id="val-flight-time">0.00 s</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label"><span data-i18n="C_BURN">Burn Time</span></div>
+                    <div class="stat-label">Thời gian đốt</div>
                     <div class="stat-value" id="val-burn-time">0.00 s</div>
                 </div>
 
@@ -789,50 +789,50 @@ fieldset {
 
             <div class="chart-controls">
                 <div>
-                    <label><span data-i18n="SEL_X">X-Axis:</span></label>
+                    <label>Trục X:</label>
                     <select id="sel-x-axis" onchange="runSimUI()">
-                        <option value="t">Time (s)</option>
-                        <option value="x">Range (m)</option>
+                        <option value="t">Thời gian (s)</option>
+                        <option value="x">Tầm xa (m)</option>
                     </select>
                 </div>
                 <div>
-                    <label><span data-i18n="SEL_Y1">Y1-Axis (Primary):</span></label>
+                    <label>Trục Y1:</label>
                     <select id="sel-y1-axis" onchange="runSimUI()">
-                        <option value="y">Altitude (m)</option>
-                        <option value="v">Velocity (m/s)</option>
-                        <option value="a">Acceleration (m/s²)</option>
-                        <option value="T">Thrust (N)</option>
-                        <option value="P">Pressure (PSI)</option>
-                        <option value="m">Mass (kg)</option>
-                        <option value="mdot">Mass Flow (kg/s)</option>
-                        <option value="temp">Internal Temp (C)</option>
-                        <option value="dV">Gas Vol (L)</option>
-                        <option value="Fd">Drag Force (N)</option>
-                        <option value="com">Center of Mass (m)</option>
-                        <option value="cop">Center of Pressure (m)</option>
-                        <option value="sm">Static Margin (Calibers)</option>
+                        <option value="y">Độ cao (m)</option>
+                        <option value="v">Vận tốc (m/s)</option>
+                        <option value="a">Gia tốc (m/s²)</option>
+                        <option value="T">Lực đẩy (N)</option>
+                        <option value="P">Áp suất (PSI)</option>
+                        <option value="m">Khối lượng (kg)</option>
+                        <option value="mdot">Lưu lượng khối (kg/s)</option>
+                        <option value="temp">Nhiệt độ bên trong (C)</option>
+                        <option value="dV">Thể tích khí (L)</option>
+                        <option value="Fd">Lực cản (N)</option>
+                        <option value="com">Trọng tâm (m)</option>
+                        <option value="cop">Tâm áp lực (m)</option>
+                        <option value="sm">Biên độ ổn định (Calibers)</option>
                     </select>
                 </div>
                 <div>
-                    <label><span data-i18n="SEL_Y2">Y2-Axis (Secondary):</span></label>
+                    <label>Trục Y2:</label>
                     <select id="sel-y2-axis" onchange="runSimUI()">
-                        <option value="none">None</option>
-                        <option value="y">Altitude (m)</option>
-                        <option value="v" selected>Velocity (m/s)</option>
-                        <option value="a">Acceleration (m/s²)</option>
-                        <option value="T">Thrust (N)</option>
-                        <option value="P">Pressure (PSI)</option>
-                        <option value="m">Mass (kg)</option>
-                        <option value="mdot">Mass Flow (kg/s)</option>
-                        <option value="temp">Internal Temp (C)</option>
-                        <option value="dV">Gas Vol (L)</option>
-                        <option value="Fd">Drag Force (N)</option>
-                        <option value="com">Center of Mass (m)</option>
-                        <option value="cop">Center of Pressure (m)</option>
-                        <option value="sm">Static Margin (Calibers)</option>
+                        <option value="none">Không</option>
+                        <option value="y">Độ cao (m)</option>
+                        <option value="v" selected>Vận tốc (m/s)</option>
+                        <option value="a">Gia tốc (m/s²)</option>
+                        <option value="T">Lực đẩy (N)</option>
+                        <option value="P">Áp suất (PSI)</option>
+                        <option value="m">Khối lượng (kg)</option>
+                        <option value="mdot">Lưu lượng khối (kg/s)</option>
+                        <option value="temp">Nhiệt độ bên trong (C)</option>
+                        <option value="dV">Thể tích khí (L)</option>
+                        <option value="Fd">Lực cản (N)</option>
+                        <option value="com">Trọng tâm (m)</option>
+                        <option value="cop">Tâm áp lực (m)</option>
+                        <option value="sm">Biên độ ổn định (Calibers)</option>
                     </select>
                 </div>
-                <button onclick="resetZoom()"><span data-i18n="BTN_ZOOM">Reset Zoom</span></button>
+                <button onclick="resetZoom()">Đặt lại Zoom</button>
             </div>
 
             <div class="chart-container">
@@ -996,69 +996,69 @@ Lực đẩy tĩnh ép dòng nước qua lỗ diện tích \(A\) là \(F = \rho 
                 <li>
                     <span class="tree-title">1. GIẢI NÉN VECTOR TRẠNG THÁI & THAM SỐ</span>
                     <ul>
-                        <li>Trích xuất biến thiên (Y): <span class="tree-math">\\( x, y, v_x, v_y, m_w, P \\)</span></li>
-                        <li>Trích xuất hằng số (params): <span class="tree-math">\\( C_d, A_c, A_e, \\rho_w, \\rho_{air}, P_{atm}, g, V_0 \\dots \\)</span></li>
+                        <li>Trích xuất biến thiên (Y): <span class="tree-math">\( x, y, v_x, v_y, m_w, P \)</span></li>
+                        <li>Trích xuất hằng số (params): <span class="tree-math">\( C_d, A_c, A_e, \rho_w, \rho_{air}, P_{atm}, g, V_0 \dots \)</span></li>
                     </ul>
                 </li>
                 <li>
                     <span class="tree-title">2. KHÍ ĐỘNG HỌC & LỰC CẢN (Fd)</span>
                     <ul>
-                        <li><span class="tree-math">\\( v_{mag} = \\sqrt{v_x^2 + v_y^2} \\)</span></li>
-                        <li>Xác định hướng: <span class="tree-math">\\( \\cos(\\theta) = \\frac{v_x}{v_{mag}}, \\sin(\\theta) = \\frac{v_y}{v_{mag}} \\)</span></li>
-                        <li>Tính độ ổn định Static Margin: <span class="tree-math">\\( sm = \\frac{CoP - CoM}{d_{body}} \\)</span></li>
-                        <li>Hệ số cản hiệu dụng: <span class="tree-math">\\( C_{d,eff} = C_d \\cdot WOBBLE\\_FACTOR \\)</span></li>
-                        <li><span class="tree-math">\\( F_d = \\frac{1}{2} \\rho_{air} C_{d,eff} A_c v_{mag}^2 \\)</span></li>
+                        <li><span class="tree-math">\( v_{mag} = \sqrt{v_x^2 + v_y^2} \)</span></li>
+                        <li>Xác định hướng: <span class="tree-math">\( \cos(\theta) = \frac{v_x}{v_{mag}}, \sin(\theta) = \frac{v_y}{v_{mag}} \)</span></li>
+                        <li>Tính độ ổn định Static Margin: <span class="tree-math">\( sm = \frac{CoP - CoM}{d_{body}} \)</span></li>
+                        <li>Hệ số cản hiệu dụng: <span class="tree-math">\( C_{d,eff} = C_d \cdot WOBBLE\_FACTOR \)</span></li>
+                        <li><span class="tree-math">\( F_d = \frac{1}{2} \rho_{air} C_{d,eff} A_c v_{mag}^2 \)</span></li>
                     </ul>
                 </li>
                 <li>
                     <span class="tree-title">3. BIẾN DẠNG VỎ CHAI (PET Elasticity)</span>
                     <ul>
-                        <li>Gia tốc dọc trục: <span class="tree-math">\\( a_{longitudinal} = a_{prev,x}\\cos(\\theta) + (a_{prev,y}+g)\\sin(\\theta) \\)</span></li>
-                        <li>Độ phình Hooke: <span class="tree-math">\\( dV_{elastic} = V_0 (P - P_{atm}) \\frac{D}{2 E t_{wall}} \\)</span></li>
+                        <li>Gia tốc dọc trục: <span class="tree-math">\( a_{longitudinal} = a_{prev,x}\cos(\theta) + (a_{prev,y}+g)\sin(\theta) \)</span></li>
+                        <li>Độ phình Hooke: <span class="tree-math">\( dV_{elastic} = V_0 (P - P_{atm}) \frac{D}{2 E t_{wall}} \)</span></li>
                     </ul>
                 </li>
                 <li>
                     <span class="tree-title">4. BỘ ĐỊNH TUYẾN LỰC ĐẨY (MAIN PHASE TREE)</span>
                     <ul>
                         <li>
-                            <span class="tree-title">[PHA A]: CÒN NƯỚC (if \\( m_w > 0 \\))</span>
+                            <span class="tree-title">[PHA A]: CÒN NƯỚC (if <span class="tree-math">\( m_w > 0 \)</span>)</span>
                             <ul>
                                 <li><strong>A1: Trong ống phóng</strong>
                                     <ul>
-                                        <li>Lực ma sát O-ring: <span class="tree-math">\\( F_{friction} = P_{contact} \\cdot A_{contact} \\cdot \\mu \\)</span></li>
-                                        <li><span class="tree-math">\\( Thrust = (P - P_{atm})A_{tube} - F_{friction} \\)</span></li>
-                                        <li><span class="tree-math">\\( \\frac{dP}{dt} = - \\frac{\\gamma P}{V_{gas}} A_{tube} v_{mag} \\)</span></li>
+                                        <li>Lực ma sát O-ring: <span class="tree-math">\( F_{friction} = P_{contact} \cdot A_{contact} \cdot \mu \)</span></li>
+                                        <li><span class="tree-math">\( Thrust = (P - P_{atm})A_{tube} - F_{friction} \)</span></li>
+                                        <li><span class="tree-math">\( \frac{dP}{dt} = - \frac{\gamma P}{V_{gas}} A_{tube} v_{mag} \)</span></li>
                                     </ul>
                                 </li>
                                 <li><strong>A2: Đã rời ống phóng</strong>
                                     <ul>
-                                        <li>Áp suất đáy: <span class="tree-math">\\( P_{bottom} = (P - P_{atm}) + \\rho_w a_{longitudinal} h_{water} \\)</span></li>
-                                        <li><span class="tree-math">\\( v_e = \\sqrt{\\frac{2 P_{bottom}}{\\rho_w}} \\)</span></li>
-                                        <li><span class="tree-math">\\( \\frac{dm_w}{dt} = -C_{d,nozzle} A_e \\rho_w v_e \\)</span></li>
-                                        <li><span class="tree-math">\\( Thrust = \\left|\\frac{dm_w}{dt}\\right| v_e \\)</span></li>
+                                        <li>Áp suất đáy: <span class="tree-math">\( P_{bottom} = (P - P_{atm}) + \rho_w a_{longitudinal} h_{water} \)</span></li>
+                                        <li><span class="tree-math">\( v_e = \sqrt{\frac{2 P_{bottom}}{\rho_w}} \)</span></li>
+                                        <li><span class="tree-math">\( \frac{dm_w}{dt} = -C_{d,nozzle} A_e \rho_w v_e \)</span></li>
+                                        <li><span class="tree-math">\( Thrust = \left|\frac{dm_w}{dt}\right| v_e \)</span></li>
                                     </ul>
                                 </li>
                                 <li><strong>Nhiệt Động Học Pha A</strong>
                                     <ul>
-                                        <li>Truyền nhiệt đối lưu: <span class="tree-math">\\( \\frac{dQ}{dt} = h_{conv} A_{surf} (T_{atm} - T_{chamber}) \\)</span></li>
-                                        <li><span class="tree-math">\\( \\frac{dP}{dt} = \\frac{\\gamma - 1}{V_{gas}} \\frac{dQ}{dt} - \\frac{\\gamma P}{V_{gas}} \\frac{dV_{gas}}{dt} \\)</span></li>
+                                        <li>Truyền nhiệt đối lưu: <span class="tree-math">\( \frac{dQ}{dt} = h_{conv} A_{surf} (T_{atm} - T_{chamber}) \)</span></li>
+                                        <li><span class="tree-math">\( \frac{dP}{dt} = \frac{\gamma - 1}{V_{gas}} \frac{dQ}{dt} - \frac{\gamma P}{V_{gas}} \frac{dV_{gas}}{dt} \)</span></li>
                                     </ul>
                                 </li>
                             </ul>
                         </li>
                         <li>
-                            <span class="tree-title">[PHA B]: HẾT NƯỚC, CÒN KHÍ (else if \\( P > P_{atm} \\))</span>
+                            <span class="tree-title">[PHA B]: HẾT NƯỚC, CÒN KHÍ (else if <span class="tree-math">\( P > P_{atm} \)</span>)</span>
                             <ul>
                                 <li><strong>B1: Choked Flow (Nghẹt - Siêu âm)</strong>
                                     <ul>
-                                        <li><span class="tree-math">\\( \\frac{dm_{air}}{dt} = -C_d A_e P \\sqrt{\\frac{\\gamma}{R T}} \\left(\\frac{2}{\\gamma+1}\\right)^{\\frac{\\gamma+1}{2(\\gamma-1)}} \\)</span></li>
-                                        <li><span class="tree-math">\\( Thrust = \\left|\\frac{dm_{air}}{dt}\\right| v_{gas} + (P_{exit} - P_{atm})A_e \\)</span></li>
+                                        <li><span class="tree-math">\( \frac{dm_{air}}{dt} = -C_d A_e P \sqrt{\frac{\gamma}{R T}} \left(\frac{2}{\gamma+1}\right)^{\frac{\gamma+1}{2(\gamma-1)}} \)</span></li>
+                                        <li><span class="tree-math">\( Thrust = \left|\frac{dm_{air}}{dt}\right| v_{gas} + (P_{exit} - P_{atm})A_e \)</span></li>
                                     </ul>
                                 </li>
                                 <li><strong>B2: Subsonic Flow (Dưới âm)</strong>
                                     <ul>
-                                        <li><span class="tree-math">\\( Mach = \\sqrt{\\frac{2}{\\gamma - 1} \\left(\\left(\\frac{P}{P_{atm}}\\right)^{\\frac{\\gamma-1}{\\gamma}} - 1\\right)} \\)</span></li>
-                                        <li><span class="tree-math">\\( Thrust = \\left|\\frac{dm_{air}}{dt}\\right| v_{gas} \\)</span></li>
+                                        <li><span class="tree-math">\( Mach = \sqrt{\frac{2}{\gamma - 1} \left(\left(\frac{P}{P_{atm}}\right)^{\frac{\gamma-1}{\gamma}} - 1\right)} \)</span></li>
+                                        <li><span class="tree-math">\( Thrust = \left|\frac{dm_{air}}{dt}\right| v_{gas} \)</span></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -1068,8 +1068,8 @@ Lực đẩy tĩnh ép dòng nước qua lỗ diện tích \(A\) là \(F = \rho 
                 <li>
                     <span class="tree-title">5. TỔNG HỢP GIA TỐC (NEWTON 2)</span>
                     <ul>
-                        <li><span class="tree-math">\\( a_x = \\frac{Thrust \\cdot \\cos(\\theta) - F_d \\cdot \\cos(\\theta)}{m_{total}} \\)</span></li>
-                        <li><span class="tree-math">\\( a_y = \\frac{Thrust \\cdot \\sin(\\theta) - F_d \\cdot \\sin(\\theta)}{m_{total}} - g \\)</span></li>
+                        <li><span class="tree-math">\( a_x = \frac{Thrust \cdot \cos(\theta) - F_d \cdot \cos(\theta)}{m_{total}} \)</span></li>
+                        <li><span class="tree-math">\( a_y = \frac{Thrust \cdot \sin(\theta) - F_d \cdot \sin(\theta)}{m_{total}} - g \)</span></li>
                     </ul>
                 </li>
                 <li class="tree-head" style="margin-top: 15px;">&#10142; return [vx, vy, ax, ay, dm_w_dt, dP_dt]</li>
@@ -1274,7 +1274,7 @@ class RocketSimulation {
     run() {
         let res = {
             isError: false,
-            sys_status: "NOMINAL",
+            sys_status: "BÌNH THƯỜNG",
             val_range: 0,
             val_ideal_range: 0,
             val_apogee: 0,
@@ -1299,7 +1299,7 @@ class RocketSimulation {
             state.P = psi_to_pa(this.params.in_pressure) + Constants.P_atm;
             if (state.P > psi_to_pa(this.params.in_burst) + Constants.P_atm) {
                 res.isError = true;
-                res.sys_status = "BOTTLE BURST (P > LIMIT)";
+                res.sys_status = "CHAI NỔ (P > GIỚI HẠN)";
                 return res;
             }
         } else {
@@ -1322,13 +1322,13 @@ class RocketSimulation {
             if (P_ideal < P_popoff) {
                 state.P = P_ideal;
                 res.isError = true;
-                res.sys_status = "FAILED TO LIFT OFF (P < POPOFF)";
+                res.sys_status = "KHÔNG THỂ CẤT CÁNH (P < BUNG NÚT)";
                 return res;
             }
             state.P = P_popoff;
             if (state.P > psi_to_pa(this.params.in_burst) + Constants.P_atm) {
                 res.isError = true;
-                res.sys_status = "BOTTLE BURST (P > LIMIT)";
+                res.sys_status = "CHAI NỔ (P > GIỚI HẠN)";
                 return res;
             }
         }
@@ -1413,128 +1413,7 @@ let chartMain = null;
 
 
 // --- I18N LOGIC ---
-const i18n = {
-    vi: {
-        TITLE: 'BẢNG ĐIỀU KHIỂN ĐO LƯỜNG TÊN LỬA NƯỚC',
-        BTN_DOCS: 'TÀI LIỆU VẬT LÝ & TOÁN HỌC',
-        BTN_ARCH: 'KIẾN TRÚC HỆ THỐNG',
-        BTN_RECALC: 'BẮT BUỘC TÍNH TOÁN LẠI',
-        L_MODE: 'CHẾ ĐỘ ĐỘNG CƠ',
-        MODE_AIR: 'CHẾ ĐỘ BƠM KHÍ',
-        MODE_CHEM: 'PHẢN ỨNG HÓA HỌC',
-        L_GEO: 'Hình học & Khối lượng',
-        L_VBOT: 'Thể tích chai (L)',
-        L_LENG: 'Chiều dài tổng thể (mm)',
-        L_DIA: 'Đường kính thân (mm)',
-        L_MEMP: 'Khối lượng rỗng (kg)',
-        L_MBAL: 'Khối lượng tạ mũi (kg)',
-        L_FROOT: 'Chiều dài chân cánh (mm)',
-        L_FTIP: 'Chiều dài đỉnh cánh (mm)',
-        L_FSPAN: 'Sải cánh (mm)',
-        L_ENERGY_AIR: 'Năng lượng & Nhiên liệu (AIR)',
-        L_WRATIO: 'Tỷ lệ đổ nước (%)',
-        L_PUMP: 'Áp suất bơm ban đầu (PSI)',
-        L_BURST: 'Áp suất nổ giới hạn (PSI)',
-        L_ENERGY_CHEM: 'Phản ứng Hóa học (CHEM)',
-        L_STYPE: 'Loại muối (g/mol)',
-        OPT_BAKING: 'Baking Soda (84 g/mol)',
-        OPT_WASHING: 'Washing Soda (106 g/mol)',
-        L_MSALT: 'Khối lượng muối (g)',
-        L_VVINEGAR: 'Thể tích giấm (ml)',
-        L_ACID: 'Nồng độ Acid (% m/v)',
-        L_GEFF: 'Hiệu suất sinh khí (%)',
-        L_POPOFF: 'Áp suất bung nút (PSI)',
-        L_THRUST_SYS: 'Hệ thống Lực đẩy',
-        L_CORK: '-> Yêu cầu Ma sát Nút bần',
-        L_NOZZLE: 'Đường kính Vòi phun (mm)',
-        L_LTUBE: 'Chiều dài ống phóng (m)',
-        L_DTUBE: 'Đường kính ống phóng (mm)',
-        L_TRAJ: 'Quỹ đạo & Môi trường',
-        L_ANGLE: 'Góc phóng (Độ)',
-        L_CD: 'Hệ số cản không khí (Cd)',
-        L_TEMP: 'Nhiệt độ không khí (C)',
-        L_DENS: 'Mật độ không khí (kg/m³)',
-        OPT_SEA: '1.225 (Ngang mực nước biển)',
-        OPT_HIGH: '1.056 (Trên vùng núi cao)',
-        BTN_OPT: 'CHẠY TỐI ƯU HÓA CMA-ES',
-        STAT_NOMINAL: 'TRẠNG THÁI HỆ THỐNG: BÌNH THƯỜNG',
-        C_ACTRANGE: 'Tầm xa Thực tế',
-        C_IDEAL: 'Tầm xa Lý thuyết',
-        C_APOGEE: 'Đỉnh quỹ đạo (Cao tối đa)',
-        C_MAXV: 'Vận tốc tối đa',
-        C_FLIGHT: 'Thời gian bay',
-        C_BURN: 'Thời gian đốt',
-        SEL_X: 'Trục X:',
-        SEL_Y1: 'Trục Y1 (Chính):',
-        SEL_Y2: 'Trục Y2 (Phụ):',
-        BTN_ZOOM: 'Đặt lại Zoom'
-    },
-    en: {
-        TITLE: 'WATER ROCKET TELEMETRY DASHBOARD',
-        BTN_DOCS: 'PHYSICS & MATH DOCS',
-        BTN_ARCH: 'SYSTEM ARCHITECTURE',
-        BTN_RECALC: 'FORCE RECALCULATE',
-        L_MODE: 'ENGINE MODE',
-        MODE_AIR: 'AIR PUMP MODE',
-        MODE_CHEM: 'CHEMICAL REACTION',
-        L_GEO: 'Geometry & Mass',
-        L_VBOT: 'Bottle Volume (L)',
-        L_LENG: 'Total Length (mm)',
-        L_DIA: 'Body Diameter (mm)',
-        L_MEMP: 'Empty Mass (kg)',
-        L_MBAL: 'Nose Ballast (kg)',
-        L_FROOT: 'Fin Root Chord (mm)',
-        L_FTIP: 'Fin Tip Chord (mm)',
-        L_FSPAN: 'Fin Span (mm)',
-        L_ENERGY_AIR: 'Energy & Propellant (AIR)',
-        L_WRATIO: 'Water Ratio (%)',
-        L_PUMP: 'Initial Pressure (PSI)',
-        L_BURST: 'Burst Limit (PSI)',
-        L_ENERGY_CHEM: 'Chemical Reaction (CHEM)',
-        L_STYPE: 'Carbonate Type',
-        OPT_BAKING: 'Baking Soda (84 g/mol)',
-        OPT_WASHING: 'Washing Soda (106 g/mol)',
-        L_MSALT: 'Mass of Salt (g)',
-        L_VVINEGAR: 'Volume of Vinegar (ml)',
-        L_ACID: 'Acid Conc. (% m/v)',
-        L_GEFF: 'Gas Yield Eff. (%)',
-        L_POPOFF: 'Pop-off Pressure (PSI)',
-        L_THRUST_SYS: 'Thrust System',
-        L_CORK: '-> Cork Friction REQD',
-        L_NOZZLE: 'Nozzle Diameter (mm)',
-        L_LTUBE: 'Launch Tube Length (m)',
-        L_DTUBE: 'Launch Tube OD (mm)',
-        L_TRAJ: 'Trajectory & Environment',
-        L_ANGLE: 'Launch Angle (Deg)',
-        L_CD: 'Drag Coefficient (Cd)',
-        L_TEMP: 'Air Temperature (C)',
-        L_DENS: 'Air Density (kg/m³)',
-        OPT_SEA: '1.225 (Sea Level)',
-        OPT_HIGH: '1.056 (High Altitude)',
-        BTN_OPT: 'RUN CMA-ES OPTIMIZER',
-        STAT_NOMINAL: 'SYSTEM STATUS: NOMINAL',
-        C_ACTRANGE: 'Actual Range',
-        C_IDEAL: 'Ideal Range (Vacuum)',
-        C_APOGEE: 'Apogee (Max Alt)',
-        C_MAXV: 'Max Velocity',
-        C_FLIGHT: 'Flight Time',
-        C_BURN: 'Burn Time',
-        SEL_X: 'X-Axis:',
-        SEL_Y1: 'Y1-Axis (Primary):',
-        SEL_Y2: 'Y2-Axis (Secondary):',
-        BTN_ZOOM: 'Reset Zoom'
-    }
-};
 
-let currentLang = 'vi';
-
-function setLanguage(lang) {
-    currentLang = lang;
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (i18n[lang][key]) {
-            el.innerText = i18n[lang][key];
-        }
     });
     if(window.chartMain) {
         updateChart(window.lastDataArrays);
@@ -1566,7 +1445,7 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e =
 // Set default on load
 document.addEventListener("DOMContentLoaded", () => {
     setTheme('light');
-    setLanguage('vi'); // default to VI
+
 });
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1606,11 +1485,11 @@ function toggleMode() {
 }
 
 function toggleLock(btn) {
-    if (btn.innerText === "🔒") {
-        btn.innerText = "🔓";
+    if (btn.innerText === "KHÓA") {
+        btn.innerText = "MỞ";
         btn.classList.add("unlocked");
     } else {
-        btn.innerText = "🔒";
+        btn.innerText = "KHÓA";
         btn.classList.remove("unlocked");
     }
 }
@@ -1671,7 +1550,7 @@ function getInputs() {
 
 function setStatus(msg, isError = false) {
     const el = document.getElementById("sys-status");
-    el.innerText = "SYSTEM STATUS: " + msg;
+    el.innerText = "TRẠNG THÁI HỆ THỐNG: " + msg;
     if (isError) {
         el.classList.add("error");
     } else {
@@ -1743,7 +1622,7 @@ function runSimUI() {
 
     } catch (e) {
         console.error("Simulation error:", e);
-        setStatus("SIMULATION ERROR", true);
+        setStatus("LỖI MÔ PHỎNG", true);
     }
 }
 
@@ -1830,8 +1709,8 @@ const stickyTooltipPlugin = {
         const tableRoot = tooltipEl.querySelector('table');
         let innerHtml = `<thead><tr><th style="color:${color}">${label}</th></tr></thead><tbody>`;
         innerHtml += globalInfo;
-        innerHtml += `<tr><td>X-Axis: ${dataPoint.x.toFixed(3)}</td></tr>`;
-        innerHtml += `<tr><td>Y-Axis: ${dataPoint.y.toFixed(3)}</td></tr>`;
+        innerHtml += `<tr><td>Trục X: ${dataPoint.x.toFixed(3)}</td></tr>`;
+        innerHtml += `<tr><td>Trục Y: ${dataPoint.y.toFixed(3)}</td></tr>`;
         innerHtml += `</tbody>`;
 
         tableRoot.innerHTML = innerHtml;
@@ -1903,19 +1782,19 @@ function initChart() {
                 x: {
                     type: 'linear',
                     position: 'bottom',
-                    title: { display: true, text: 'X Axis', color: '#00f0ff' },
+                    title: { display: true, text: \'Trục X\', color: \'#00f0ff\' },
                     grid: { color: '#1e2d3d' }
                 },
                 y: {
                     type: 'linear',
                     position: 'left',
-                    title: { display: true, text: 'Primary Y', color: '#00f0ff' },
+                    title: { display: true, text: \'Trục Y Chính\', color: \'#00f0ff\' },
                     grid: { color: '#1e2d3d' }
                 },
                 y2: {
                     type: 'linear',
                     position: 'right',
-                    title: { display: true, text: 'Secondary Y', color: '#39ff14' },
+                    title: { display: true, text: \'Trục Y Phụ\', color: \'#39ff14\' },
                     grid: { drawOnChartArea: false }, // Prevent overlapping grid lines
                     display: false // Hidden by default
                 }
@@ -1944,11 +1823,11 @@ function updateChart(dataArrays) {
 
     // Map labels for nice display
     const axisLabels = {
-        't': 'Time (s)', 'x': 'Range (m)',
-        'y': 'Altitude (m)', 'v': 'Velocity (m/s)', 'a': 'Acceleration (m/s²)',
-        'T': 'Thrust (N)', 'P': 'Pressure (PSI)', 'm': 'Mass (kg)', 'mdot': 'Mass Flow (kg/s)',
-        'temp': 'Temp (C)', 'dV': 'Gas Vol (L)', 'Fd': 'Drag (N)',
-        'com': 'CoM (m)', 'cop': 'CoP (m)', 'sm': 'Static Margin'
+        't': 'Thời gian (s)', 'x': 'Tầm xa (m)',
+        'y': 'Độ cao (m)', 'v': 'Vận tốc (m/s)', 'a': 'Gia tốc (m/s²)',
+        'T': 'Lực đẩy (N)', 'P': 'Áp suất (PSI)', 'm': 'Khối lượng (kg)', 'mdot': 'Lưu lượng khối (kg/s)',
+        'temp': 'Nhiệt độ (C)', 'dV': 'Thể tích khí (L)', 'Fd': 'Lực cản (N)',
+        'com': 'Trọng tâm (m)', 'cop': 'Tâm áp lực (m)', 'sm': 'Biên độ ổn định'
     };
 
     // Update X-Axis title
@@ -1963,7 +1842,7 @@ function updateChart(dataArrays) {
         datasets.push({
             label: axisLabels[y1Key],
             data: d1,
-            borderColor: '#00f0ff', // Cyan
+            borderColor: '#00ffff', // Bright Cyan
             backgroundColor: 'transparent',
             pointRadius: 0,
             pointHoverRadius: 4,
@@ -1984,7 +1863,7 @@ function updateChart(dataArrays) {
         datasets.push({
             label: axisLabels[y2Key],
             data: d2,
-            borderColor: '#39ff14', // Green
+            borderColor: '#39ff14', // Bright Green
             backgroundColor: 'transparent',
             pointRadius: 0,
             pointHoverRadius: 4,
