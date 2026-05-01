@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Rocket Telemetry Dashboard</title>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+
+:root {
+    --bg-dark: #03060a;
+    --bg-panel: #0a1018;
+    --bg-input: #121a24;
+    --text-main: #e0e6ed;
+    --text-muted: #8b9bb4;
+    --accent-cyan: #00f0ff;
+    --accent-green: #39ff14;
+    --accent-red: #ff2a2a;
+    --accent-orange: #ff9d00;
+    --border-color: #1e2d3d;
+    --font-mono: 'Roboto Mono', monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-mono);
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--bg-panel);
+    border-bottom: 2px solid var(--accent-cyan);
+}
+
+header h1 {
+    font-size: 1.5rem;
+    color: var(--accent-cyan);
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+    margin: 0;
+}
+
+.header-controls button {
+    background: transparent;
+    color: var(--accent-cyan);
+    border: 1px solid var(--accent-cyan);
+    padding: 8px 15px;
+    margin-left: 10px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: bold;
+}
+
+.header-controls button:hover {
+    background: var(--accent-cyan);
+    color: var(--bg-dark);
+}
+
+/* Main Layout */
+#app-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Left Pane: Controls */
+#controls {
+    width: 380px;
+    min-width: 380px;
+    background-color: var(--bg-panel);
+    border-right: 1px solid var(--border-color);
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* Fieldsets & Inputs */
+fieldset {
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 4px;
+}
+
+legend {
+    color: var(--accent-orange);
+    font-size: 0.9rem;
+    font-weight: bold;
+    padding: 0 5px;
+}
+
+.mode-switch {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+    background-color: var(--bg-input);
+    padding: 10px;
+    border: 1px solid var(--accent-cyan);
+}
+
+.mode-switch label {
+    color: var(--accent-cyan);
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.mode-switch select {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    border: 1px solid var(--accent-cyan);
+    padding: 5px;
+    font-family: var(--font-mono);
+    font-weight: bold;
+}
+
+.input-group {
+    margin-bottom: 10px;
+}
+
+.input-group label {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.help {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-color: var(--border-color);
+    color: var(--text-main);
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    font-size: 10px;
+    margin-left: 5px;
+    cursor: help;
+}
+
+.input-row {
+    display: flex;
+}
+
+.input-row input, .input-group select {
+    flex: 1;
+    background-color: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 6px;
+    font-family: var(--font-mono);
+}
+
+.input-row input:focus, .input-group select:focus {
+    outline: none;
+    border-color: var(--accent-cyan);
+}
+
+.input-group select {
+    width: 100%;
+}
+
+.opt-lock {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-left: none;
+    color: var(--text-muted);
+    padding: 0 8px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.opt-lock.unlocked {
+    color: var(--accent-green);
+}
+
+.action-btn {
+    background-color: #1a1a1a;
+    color: var(--accent-green);
+    border: 1px solid var(--accent-green);
+    padding: 12px 20px;
+    font-family: var(--font-mono);
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background-color: var(--accent-green);
+    color: var(--bg-dark);
+}
+
+/* Right Pane: Telemetry */
+#telemetry {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    background-color: var(--bg-dark);
+    overflow-y: auto;
+}
+
+.status-banner {
+    background-color: rgba(57, 255, 20, 0.1);
+    color: var(--accent-green);
+    border: 1px solid var(--accent-green);
+    padding: 15px;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+}
+
+.status-banner.error {
+    background-color: rgba(255, 42, 42, 0.1);
+    color: var(--accent-red);
+    border-color: var(--accent-red);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    text-align: center;
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    color: var(--accent-cyan);
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.chart-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 10px;
+    background-color: var(--bg-panel);
+    padding: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.chart-controls label {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-right: 5px;
+}
+
+.chart-controls select {
+    background-color: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 4px;
+    font-family: var(--font-mono);
+}
+
+.chart-controls button {
+    background: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    margin-left: auto;
+}
+
+.chart-controls button:hover {
+    background: var(--border-color);
+}
+
+.chart-container {
+    flex: 1;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    position: relative;
+    min-height: 400px;
+}
+
+/* Modal Styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+.modal-content {
+    background-color: var(--bg-panel);
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid var(--accent-cyan);
+    width: 80%;
+    max-width: 800px;
+    color: var(--text-main);
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.close-modal {
+    color: var(--accent-red);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-modal:hover {
+    color: #fff;
+}
+
+.eq-section {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.eq-section h3 {
+    color: var(--accent-orange);
+    margin-bottom: 10px;
+}
+
+/* Custom Chart Tooltip styles created dynamically by JS plugin */
+.custom-chart-tooltip {
+    background: rgba(10, 16, 24, 0.9);
+    border: 1px solid var(--accent-cyan);
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    pointer-events: none;
+    position: absolute;
+    transform: translate(-50%, 0);
+    transition: all .1s ease;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    z-index: 100;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+.custom-chart-tooltip table { margin: 0; }
+.custom-chart-tooltip tr { background-color: transparent !important; }
+.custom-chart-tooltip th { color: var(--accent-orange); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; text-align: left; }
+.custom-chart-tooltip td { padding-top: 4px; }
+
+</style>
+
+    <!-- Chart.js and plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1"></script>
+
+    <!-- MathJax for equations -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- WASM Engine -->
+
+</head>
+<body>
+
+    <header>
+        <h1>WATER ROCKET TELEMETRY DASHBOARD</h1>
+        <div class="header-controls">
+            <button id="btn-proof" onclick="document.getElementById('proof-modal').style.display='block'">MATH PROOF</button>
+            <button id="btn-arch" onclick="document.getElementById('arch-modal').style.display='block'">SYSTEM ARCHITECTURE</button>
+            <button id="btn-equations" onclick="openModal()">VIEW PHYSICS EQUATIONS</button>
+            <button id="btn-force-run" onclick="runSimUI()">FORCE RECALCULATE</button>
+        </div>
+    </header>
+
+    <div id="app-body">
+
+        <!-- LEFT PANE: CONTROLS -->
+        <aside id="controls">
+            <div class="mode-switch">
+                <label for="in-mode">ENGINE MODE</label>
+                <select id="in-mode" onchange="toggleMode(); runSimUI();">
+                    <option value="AIR">AIR PUMP MODE</option>
+                    <option value="CHEM">CHEMICAL REACTION</option>
+                </select>
+            </div>
+
+            <fieldset id="fs-geometry">
+                <legend>Geometry & Mass</legend>
+                <div class="input-group">
+                    <label>Bottle Volume (L) <span class="help" title="Total internal volume of the pressure vessel.">?</span></label>
+                    <div class="input-row">
+                        <input type="number" id="in-v-bottle" value="1.5" step="0.1" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Total Length (mm) <span class="help" title="Total length of the rocket from nose to nozzle.">?</span></label>
+                    <div class="input-row">
+                        <input type="number" id="in-l-rocket" value="500" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Body Diameter (mm) <span class="help" title="Outer diameter of the main body tube.">?</span></label>
+                    <div class="input-row">
+                        <input type="number" id="in-d-body" value="90" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Empty Mass (kg) <span class="help" title="Mass of the bottle and fins without water/ballast.">?</span></label>
+                    <div class="input-row">
+                        <input type="number" id="in-m-empty" value="0.1" step="0.01" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Nose Ballast (kg) <span class="help" title="Mass added to the nose cone for stability.">?</span></label>
+                    <div class="input-row">
+                        <input type="number" id="in-m-ballast" value="0.05" step="0.01" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Fin Root Chord (mm)</label>
+                    <div class="input-row">
+                        <input type="number" id="in-fin-root" value="100" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Fin Tip Chord (mm)</label>
+                    <div class="input-row">
+                        <input type="number" id="in-fin-tip" value="50" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Fin Span (mm)</label>
+                    <div class="input-row">
+                        <input type="number" id="in-fin-span" value="60" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset id="fs-air">
+                <legend>Energy & Propellant (AIR)</legend>
+                <div class="input-group">
+                    <label>Water Ratio (%) <span class="help" title="Percentage of bottle volume filled with water.">?</span></label>
+                    <div class="input-row">
+                        <input type="number" id="in-water-ratio" value="33" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Initial Pressure (PSI) <span class="help" title="Gauge pressure inside the bottle before launch.">?</span></label>
+                    <div class="input-row">
+                        <input type="number" id="in-pressure" value="60" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Burst Limit (PSI) <span class="help" title="Maximum safe pressure before structural failure.">?</span></label>
+                    <div class="input-row">
+                        <input type="number" id="in-burst" value="120" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset id="fs-chem" style="display: none;">
+                <legend>Chemical Reaction (CHEM)</legend>
+                <div class="input-group">
+                    <label>Carbonate Type</label>
+                    <select id="in-salt-type" onchange="runSimUI()">
+                        <option value="84">Baking Soda (84 g/mol)</option>
+                        <option value="106">Washing Soda (106 g/mol)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Mass of Salt (g)</label>
+                    <div class="input-row">
+                        <input type="number" id="in-mass-salt" value="50" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Volume of Vinegar (ml)</label>
+                    <div class="input-row">
+                        <input type="number" id="in-vol-vinegar" value="500" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Acid Conc. (% m/v)</label>
+                    <div class="input-row">
+                        <input type="number" id="in-acid-conc" value="5" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Gas Yield Eff. (%)</label>
+                    <div class="input-row">
+                        <input type="number" id="in-gas-eff" value="85" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Pop-off Pressure (PSI)</label>
+                    <div class="input-row">
+                        <input type="number" id="in-popoff" value="80" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset id="fs-thrust">
+                <legend>Thrust System</legend>
+                <div class="input-group">
+                    <label>Nozzle Diameter (mm)</label>
+                    <div class="input-row">
+                        <input type="number" id="in-d-nozzle" value="22" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Launch Tube Length (m)</label>
+                    <div class="input-row">
+                        <input type="number" id="in-l-tube" value="0.5" step="0.1" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Launch Tube OD (mm)</label>
+                    <div class="input-row">
+                        <input type="number" id="in-d-tube" value="20" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset id="fs-env">
+                <legend>Trajectory & Environment</legend>
+                <div class="input-group">
+                    <label>Launch Angle (Deg) <span class="help" title="Angle from horizontal. 90 is straight up.">?</span></label>
+                    <div class="input-row">
+                        <input type="number" id="in-angle" value="45" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Drag Coefficient (Cd)</label>
+                    <div class="input-row">
+                        <input type="number" id="in-cd" value="0.45" step="0.01" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Air Temperature (C)</label>
+                    <div class="input-row">
+                        <input type="number" id="in-temp" value="25" onchange="runSimUI()">
+                        <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Air Density (kg/m³)</label>
+                    <select id="in-env" onchange="runSimUI()">
+                        <option value="1.225">1.225 (Sea Level)</option>
+                        <option value="1.056">1.056 (High Altitude)</option>
+                    </select>
+                </div>
+            </fieldset>
+
+            <div style="padding: 20px 0; text-align: center;">
+                <button class="action-btn" onclick="optimizeRange()">RUN CMA-ES OPTIMIZER</button>
+            </div>
+        </aside>
+
+        <!-- RIGHT PANE: TELEMETRY -->
+        <main id="telemetry">
+            <div id="sys-status" class="status-banner">SYSTEM STATUS: NOMINAL</div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Actual Range</div>
+                    <div class="stat-value" id="val-range">0.00 m</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Ideal Range (Vacuum)</div>
+                    <div class="stat-value" id="val-ideal-range">0.00 m</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Apogee (Max Alt)</div>
+                    <div class="stat-value" id="val-apogee">0.00 m</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Max Velocity</div>
+                    <div class="stat-value" id="val-max-v">0.00 m/s</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Flight Time</div>
+                    <div class="stat-value" id="val-flight-time">0.00 s</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Burn Time</div>
+                    <div class="stat-value" id="val-burn-time">0.00 s</div>
+                </div>
+                <div class="stat-card" id="card-friction" style="display: none;">
+                    <div class="stat-label">Cork Friction Reqd</div>
+                    <div class="stat-value" id="val-cork-friction">0.00 kgf</div>
+                </div>
+            </div>
+
+            <div class="chart-controls">
+                <div>
+                    <label>X-Axis:</label>
+                    <select id="sel-x-axis" onchange="runSimUI()">
+                        <option value="t">Time (s)</option>
+                        <option value="x">Range (m)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Y1-Axis (Primary):</label>
+                    <select id="sel-y1-axis" onchange="runSimUI()">
+                        <option value="y">Altitude (m)</option>
+                        <option value="v">Velocity (m/s)</option>
+                        <option value="a">Acceleration (m/s²)</option>
+                        <option value="T">Thrust (N)</option>
+                        <option value="P">Pressure (PSI)</option>
+                        <option value="m">Mass (kg)</option>
+                        <option value="mdot">Mass Flow (kg/s)</option>
+                        <option value="temp">Internal Temp (C)</option>
+                        <option value="dV">Gas Vol (L)</option>
+                        <option value="Fd">Drag Force (N)</option>
+                        <option value="com">Center of Mass (m)</option>
+                        <option value="cop">Center of Pressure (m)</option>
+                        <option value="sm">Static Margin (Calibers)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Y2-Axis (Secondary):</label>
+                    <select id="sel-y2-axis" onchange="runSimUI()">
+                        <option value="none">None</option>
+                        <option value="y">Altitude (m)</option>
+                        <option value="v" selected>Velocity (m/s)</option>
+                        <option value="a">Acceleration (m/s²)</option>
+                        <option value="T">Thrust (N)</option>
+                        <option value="P">Pressure (PSI)</option>
+                        <option value="m">Mass (kg)</option>
+                        <option value="mdot">Mass Flow (kg/s)</option>
+                        <option value="temp">Internal Temp (C)</option>
+                        <option value="dV">Gas Vol (L)</option>
+                        <option value="Fd">Drag Force (N)</option>
+                        <option value="com">Center of Mass (m)</option>
+                        <option value="cop">Center of Pressure (m)</option>
+                        <option value="sm">Static Margin (Calibers)</option>
+                    </select>
+                </div>
+                <button onclick="resetZoom()">Reset Zoom</button>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="mainChart"></canvas>
+            </div>
+        </main>
+    </div>
+
+    <!-- EQUATIONS MODAL -->
+    <div id="eq-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2>Physics Engine Equations</h2>
+            <div class="eq-section">
+                <h3>1. Thrust Equations (Air/Water)</h3>
+                <p>Bernoulli's principle for exhaust velocity:</p>
+                $$ v_e = \sqrt{\frac{2(P - P_{atm})}{\rho_w}} $$
+                <p>Mass flow rate and Thrust:</p>
+                $$ \frac{dm_w}{dt} = -C_d A_e \rho_w v_e $$
+                $$ F_{thrust} = \left| \frac{dm_w}{dt} \right| v_e $$
+            </div>
+            <div class="eq-section">
+                <h3>2. Kinematics (2D)</h3>
+                <p>Net acceleration resolving Thrust, Drag, and Gravity:</p>
+                $$ a_x = \frac{T \cos(\theta) - F_d \cos(\theta)}{m} $$
+                $$ a_y = \frac{T \sin(\theta) - F_d \sin(\theta)}{m} - g $$
+            </div>
+            <div class="eq-section">
+                <h3>3. Aerodynamics</h3>
+                <p>Drag force:</p>
+                $$ F_d = \frac{1}{2} \rho_{air} v^2 C_d A $$
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+// Hằng số vật lý chuẩn SI
+const Constants = {
+    g: 9.80665, // m/s^2
+    R_air: 287.05, // J/(kg*K) cho không khí
+    gamma_air: 1.4, // Tỷ số nhiệt dung
+    P_atm: 101325.0, // Pa (áp suất khí quyển tiêu chuẩn)
+    rho_w: 1000.0, // kg/m^3 (khối lượng riêng của nước)
+    E_pet: 2.0e9, // Pa (Mô đun Young của nhựa PET)
+    t_wall: 0.0005 // m (Độ dày thành chai 0.5mm)
+};
+
+// Hàm tiện ích chuyển đổi đơn vị
+function psi_to_pa(psi) { return psi * 6894.757; }
+function pa_to_psi(pa) { return pa / 6894.757; }
+
+class DerivativeEngine {
+    constructor(params) {
+        this.params = params;
+    }
+
+    compute(t, state) {
+        let out = {};
+        out.dx = state.vx;
+        out.dy = state.vy;
+
+        const C_d_base = this.params.in_cd;
+        const D = this.params.in_d_body / 1000.0;
+        const A_c = Math.PI * (D / 2.0) * (D / 2.0);
+        const D_e = this.params.in_d_nozzle / 1000.0;
+        const A_e = Math.PI * (D_e / 2.0) * (D_e / 2.0);
+        const rho_air = this.params.in_env;
+        const V_0 = this.params.in_v_bottle / 1000.0;
+        const L_tube = this.params.in_l_tube;
+
+        const v_mag = Math.sqrt(state.vx*state.vx + state.vy*state.vy);
+        const dist = Math.sqrt(state.x*state.x + state.y*state.y);
+
+        let cos_th, sin_th;
+        if (v_mag > 1e-9) {
+            cos_th = state.vx / v_mag;
+            sin_th = state.vy / v_mag;
+        } else {
+            cos_th = Math.cos(this.params.in_angle * Math.PI / 180.0);
+            sin_th = Math.sin(this.params.in_angle * Math.PI / 180.0);
+        }
+
+        const L_rocket = this.params.in_l_rocket / 1000.0;
+        const m_empty_total = this.params.in_m_empty + this.params.in_m_ballast;
+        const CoM_empty = 0.5 * L_rocket;
+        const CoM_water = L_rocket - 0.1;
+        const CoM_total = (m_empty_total * CoM_empty + state.m_w * CoM_water) / (m_empty_total + state.m_w);
+        const CoP = L_rocket * 0.7;
+        const sm = (CoP - CoM_total) / D;
+
+        let wobble_factor = 1.0;
+        if (sm < 1.0) wobble_factor = 1.0 + (1.0 - sm) * 0.5;
+        if (v_mag < 15.0) wobble_factor += 0.2;
+
+        const C_d_eff = C_d_base * wobble_factor;
+        out.Fd = 0.5 * rho_air * C_d_eff * A_c * v_mag * v_mag;
+        out.sm = sm;
+        out.com = CoM_total;
+        out.cop = CoP;
+
+        out.a_longitudinal = (state.a_prev_x * cos_th) + ((state.a_prev_y + Constants.g) * sin_th);
+
+        out.dV_elastic = V_0 * (state.P - Constants.P_atm) * (D / (2 * Constants.E_pet * Constants.t_wall));
+        if (out.dV_elastic < 0) out.dV_elastic = 0;
+
+        let Thrust = 0;
+        let dm_w_dt = 0;
+        let dP_dt = 0;
+        let dm_air_dt = 0;
+
+        let V_gas = V_0 + out.dV_elastic - (state.m_w / Constants.rho_w);
+        if (V_gas < 0.0001) V_gas = 0.0001;
+        let T_chamber = (state.P * V_gas) / (state.m_air * Constants.R_air);
+        out.temp = T_chamber - 273.15;
+
+        const A_surf = Math.PI * D * (L_rocket * 0.8);
+        const T_atm = this.params.in_temp + 273.15;
+        const h_conv = 20.0;
+        const dQ_dt = h_conv * A_surf * (T_atm - T_chamber);
+
+        if (state.m_w > 0) {
+            if (dist < L_tube) {
+                const D_tube = this.params.in_d_tube / 1000.0;
+                const A_tube = Math.PI * (D_tube / 2.0) * (D_tube / 2.0);
+                Thrust = (state.P - Constants.P_atm) * A_tube;
+                if (Thrust < 0) Thrust = 0;
+                dm_w_dt = 0;
+                dP_dt = - (Constants.gamma_air * state.P / V_gas) * (A_tube * v_mag);
+            } else {
+                const h_water = state.m_w / (Constants.rho_w * A_c);
+                const P_bottom = (state.P - Constants.P_atm) + (Constants.rho_w * out.a_longitudinal * h_water);
+                if (P_bottom > 0) {
+                    const v_e = Math.sqrt(2.0 * P_bottom / Constants.rho_w);
+                    const C_d_nozzle = 0.98;
+                    dm_w_dt = -C_d_nozzle * A_e * Constants.rho_w * v_e;
+                    Thrust = Math.abs(dm_w_dt) * v_e;
+                }
+                const dV_gas_dt = -dm_w_dt / Constants.rho_w;
+                dP_dt = ((Constants.gamma_air - 1.0) / V_gas) * dQ_dt - (Constants.gamma_air * state.P / V_gas) * dV_gas_dt;
+            }
+        } else if (state.P > Constants.P_atm * 1.01) {
+            V_gas = V_0 + out.dV_elastic;
+            const p_ratio = Constants.P_atm / state.P;
+            const C_d_air = 0.8;
+
+            if (p_ratio < 0.528) {
+                const term = Math.pow(2.0 / (Constants.gamma_air + 1.0), (Constants.gamma_air + 1.0) / (2.0 * (Constants.gamma_air - 1.0)));
+                dm_air_dt = -C_d_air * A_e * state.P * Math.sqrt(Constants.gamma_air / (Constants.R_air * T_chamber)) * term;
+                const P_exit = state.P * Math.pow(2.0 / (Constants.gamma_air + 1.0), Constants.gamma_air / (Constants.gamma_air - 1.0));
+                const v_exit = Math.sqrt(Constants.gamma_air * Constants.R_air * T_chamber * (2.0 / (Constants.gamma_air + 1.0)));
+                Thrust = Math.abs(dm_air_dt) * v_exit + (P_exit - Constants.P_atm) * A_e;
+            } else {
+                const Mach = Math.sqrt((2.0 / (Constants.gamma_air - 1.0)) * (Math.pow(state.P / Constants.P_atm, (Constants.gamma_air - 1.0) / Constants.gamma_air) - 1.0));
+                const T_exit = T_chamber / Math.pow(state.P / Constants.P_atm, (Constants.gamma_air - 1.0) / Constants.gamma_air);
+                const v_exit = Mach * Math.sqrt(Constants.gamma_air * Constants.R_air * T_exit);
+                const rho_exit = Constants.P_atm / (Constants.R_air * T_exit);
+                dm_air_dt = -C_d_air * A_e * rho_exit * v_exit;
+                Thrust = Math.abs(dm_air_dt) * v_exit;
+            }
+            dP_dt = (Constants.gamma_air * Constants.R_air * T_chamber / V_gas) * dm_air_dt + ((Constants.gamma_air - 1.0) / V_gas) * dQ_dt;
+        } else {
+            Thrust = 0;
+            dm_w_dt = 0;
+            dm_air_dt = 0;
+            dP_dt = 0;
+            out.temp = T_atm - 273.15;
+        }
+
+        out.Thrust = Thrust;
+        out.dm_w = dm_w_dt;
+        out.dP = dP_dt;
+        out.dm_air = dm_air_dt;
+
+        const m_total = m_empty_total + state.m_w + state.m_air;
+        let ax = 0, ay = 0;
+
+        if (dist < L_tube && dist < 0.001 && Thrust == 0 && state.P <= Constants.P_atm * 1.01) {
+             ax = 0; ay = 0;
+        } else if (dist < L_tube) {
+            const theta_0 = this.params.in_angle * Math.PI / 180.0;
+            let a_net = (Thrust - out.Fd) / m_total - Constants.g * Math.sin(theta_0);
+            if (a_net < 0 && dist == 0) a_net = 0;
+            ax = a_net * Math.cos(theta_0);
+            ay = a_net * Math.sin(theta_0);
+        } else {
+            ax = (Thrust * cos_th - out.Fd * cos_th) / m_total;
+            ay = (Thrust * sin_th - out.Fd * sin_th) / m_total - Constants.g;
+        }
+
+        out.dvx = ax;
+        out.dvy = ay;
+
+        return out;
+    }
+}
+
+class RK45Integrator {
+    static step(state, dt, engine) {
+        const out_derivs = engine.compute(0.0, state);
+
+        state.x += out_derivs.dx * dt;
+        state.y += out_derivs.dy * dt;
+        state.vx += out_derivs.dvx * dt;
+        state.vy += out_derivs.dvy * dt;
+        state.m_w += out_derivs.dm_w * dt;
+        state.P += out_derivs.dP * dt;
+        state.m_air += out_derivs.dm_air * dt;
+
+        if (state.m_w < 0) state.m_w = 0;
+        if (state.P < Constants.P_atm) state.P = Constants.P_atm;
+        if (state.m_air < 0) state.m_air = 0;
+
+        state.a_prev_x = out_derivs.dvx;
+        state.a_prev_y = out_derivs.dvy;
+
+        return out_derivs;
+    }
+}
+
+class RocketSimulation {
+    constructor(params) {
+        this.params = params;
+        this.engine = new DerivativeEngine(params);
+    }
+
+    run() {
+        let res = {
+            isError: false,
+            sys_status: "NOMINAL",
+            val_range: 0,
+            val_ideal_range: 0,
+            val_apogee: 0,
+            val_max_v: 0,
+            val_flight_time: 0,
+            val_burn_time: 0,
+            val_cork_friction: 0,
+            t: [], x: [], y: [], v: [], a: [], T: [], P: [], m: [], mdot: [], temp: [], dV: [], Fd: [], com: [], cop: [], sm: [], dt: []
+        };
+
+        let state = {
+            x: 0, y: 0, vx: 0, vy: 0,
+            a_prev_x: 0, a_prev_y: 0,
+            m_w: 0, P: 0, m_air: 0
+        };
+
+        const V_bottle = this.params.in_v_bottle / 1000.0;
+
+        if (this.params.in_mode === "AIR") {
+            const v_water = V_bottle * (this.params.in_water_ratio / 100.0);
+            state.m_w = v_water * Constants.rho_w;
+            state.P = psi_to_pa(this.params.in_pressure) + Constants.P_atm;
+            if (state.P > psi_to_pa(this.params.in_burst) + Constants.P_atm) {
+                res.isError = true;
+                res.sys_status = "BOTTLE BURST (P > LIMIT)";
+                return res;
+            }
+        } else {
+            const vol_vinegar_m3 = this.params.in_vol_vinegar / 1000000.0;
+            state.m_w = vol_vinegar_m3 * Constants.rho_w;
+
+            const molar_mass_salt = parseFloat(this.params.in_salt_type);
+            const moles_salt = this.params.in_mass_salt / molar_mass_salt;
+            const mass_acid = (this.params.in_vol_vinegar * this.params.in_acid_conc / 100.0);
+            const moles_acid = mass_acid / 60.0;
+
+            let moles_co2 = (molar_mass_salt === 106.0) ? Math.min(moles_salt, moles_acid / 2.0) : Math.min(moles_salt, moles_acid);
+            moles_co2 *= (this.params.in_gas_eff / 100.0);
+
+            const V_gas_initial = V_bottle - vol_vinegar_m3;
+            const T_initial = this.params.in_temp + 273.15;
+            const P_ideal = (moles_co2 * 8.314 * T_initial) / V_gas_initial + Constants.P_atm;
+
+            const P_popoff = psi_to_pa(this.params.in_popoff) + Constants.P_atm;
+            if (P_ideal < P_popoff) {
+                state.P = P_ideal;
+                res.isError = true;
+                res.sys_status = "FAILED TO LIFT OFF (P < POPOFF)";
+                return res;
+            }
+            state.P = P_popoff;
+            if (state.P > psi_to_pa(this.params.in_burst) + Constants.P_atm) {
+                res.isError = true;
+                res.sys_status = "BOTTLE BURST (P > LIMIT)";
+                return res;
+            }
+        }
+
+        const V_gas = V_bottle - (state.m_w / Constants.rho_w);
+        const T_initial = this.params.in_temp + 273.15;
+        state.m_air = (state.P * V_gas) / (Constants.R_air * T_initial);
+
+        const A_e = Math.PI * Math.pow(this.params.in_d_nozzle / 2000.0, 2);
+        res.val_cork_friction = (state.P - Constants.P_atm) * A_e / Constants.g;
+
+        let current_t = 0.0;
+        let dt = 0.001;
+        const max_time = 30.0;
+
+        let apogee = 0;
+        let max_v = 0;
+        let burn_time = 0;
+        let motor_burnout = false;
+
+        let log_counter = 0;
+        const log_freq = 5;
+
+        while (current_t < max_time && state.y >= -0.01) {
+            const d1 = RK45Integrator.step(state, dt, this.engine);
+            current_t += dt;
+
+            if (!motor_burnout && d1.Thrust <= 0.001 && current_t > 0.1) {
+                motor_burnout = true;
+                burn_time = current_t;
+            }
+
+            const v_mag = Math.sqrt(state.vx*state.vx + state.vy*state.vy);
+            if (state.y > apogee) apogee = state.y;
+            if (v_mag > max_v) max_v = v_mag;
+
+            if (log_counter % log_freq === 0) {
+                res.t.push(current_t);
+                res.x.push(state.x);
+                res.y.push(state.y);
+                res.v.push(v_mag);
+                res.a.push(Math.sqrt(d1.dvx*d1.dvx + d1.dvy*d1.dvy));
+                res.T.push(d1.Thrust);
+                res.P.push(pa_to_psi(state.P - Constants.P_atm));
+                res.m.push(this.params.in_m_empty + this.params.in_m_ballast + state.m_w + state.m_air);
+                res.mdot.push(Math.abs(d1.dm_w) + Math.abs(d1.dm_air));
+                res.temp.push(d1.temp);
+                res.dV.push(d1.dV_elastic * 1000.0);
+                res.Fd.push(d1.Fd);
+                res.com.push(d1.com);
+                res.cop.push(d1.cop);
+                res.sm.push(d1.sm);
+                res.dt.push(dt);
+            }
+            log_counter++;
+
+            if (state.y < 0 && current_t > 0.5) break;
+        }
+
+        res.val_range = state.x;
+        res.val_ideal_range = (max_v * max_v * Math.sin(2 * this.params.in_angle * Math.PI / 180.0)) / Constants.g;
+        if (res.val_ideal_range < 0) res.val_ideal_range = 0;
+        res.val_apogee = apogee;
+        res.val_max_v = max_v;
+        res.val_flight_time = current_t;
+        res.val_burn_time = burn_time;
+
+        return res;
+    }
+}
+
+function run_simulation(input) {
+    const sim = new RocketSimulation(input);
+    return sim.run();
+}
+
+
+// --- GLOBAL VARIABLES ---
+let chartMain = null;
+
+// --- INITIALIZATION ---
+document.addEventListener("DOMContentLoaded", () => {
+    initChart();
+    toggleMode(); // Setup initial UI state
+
+    // Initialize WASM Engine
+    if (typeof createModule === 'function') {
+        createModule().then((module) => {
+            wasmEngine = module;
+            console.log("WASM Engine Loaded:", wasmEngine);
+            runSimUI(); // Run initial simulation once engine is loaded
+        });
+    } else {
+        console.error("WASM module 'createModule' not found. Did physics.js load?");
+        runSimUI(); // Fallback if WASM not available
+    }
+});
+
+// --- UI LOGIC ---
+
+function toggleMode() {
+    const mode = document.getElementById("in-mode").value;
+    const fsAir = document.getElementById("fs-air");
+    const fsChem = document.getElementById("fs-chem");
+    const cardFriction = document.getElementById("card-friction");
+
+    if (mode === "AIR") {
+        fsAir.style.display = "block";
+        fsChem.style.display = "none";
+        cardFriction.style.display = "none";
+    } else {
+        fsAir.style.display = "none";
+        fsChem.style.display = "block";
+        cardFriction.style.display = "block";
+    }
+}
+
+function toggleLock(btn) {
+    if (btn.innerText === "🔒") {
+        btn.innerText = "🔓";
+        btn.classList.add("unlocked");
+    } else {
+        btn.innerText = "🔒";
+        btn.classList.remove("unlocked");
+    }
+}
+
+// --- MODAL LOGIC ---
+function openModal() {
+    document.getElementById("eq-modal").style.display = "block";
+}
+
+function closeModal() {
+    document.getElementById("eq-modal").style.display = "none";
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById("eq-modal");
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+// --- SIMULATION (MOCK FOR NOW, INTENDED FOR WASM) ---
+
+function getInputs() {
+    // This function gathers all inputs into an object that would be passed to the WASM engine
+    return {
+        mode: document.getElementById("in-mode").value,
+        geometry: {
+            vBottle: parseFloat(document.getElementById("in-v-bottle").value),
+            lRocket: parseFloat(document.getElementById("in-l-rocket").value),
+            dBody: parseFloat(document.getElementById("in-d-body").value),
+            mEmpty: parseFloat(document.getElementById("in-m-empty").value),
+            mBallast: parseFloat(document.getElementById("in-m-ballast").value),
+            finRoot: parseFloat(document.getElementById("in-fin-root").value),
+            finTip: parseFloat(document.getElementById("in-fin-tip").value),
+            finSpan: parseFloat(document.getElementById("in-fin-span").value),
+        },
+        air: {
+            waterRatio: parseFloat(document.getElementById("in-water-ratio").value),
+            pressure: parseFloat(document.getElementById("in-pressure").value),
+            burst: parseFloat(document.getElementById("in-burst").value),
+        },
+        chem: {
+            saltType: document.getElementById("in-salt-type").value,
+            massSalt: parseFloat(document.getElementById("in-mass-salt").value),
+            volVinegar: parseFloat(document.getElementById("in-vol-vinegar").value),
+            acidConc: parseFloat(document.getElementById("in-acid-conc").value),
+            gasEff: parseFloat(document.getElementById("in-gas-eff").value),
+            popoff: parseFloat(document.getElementById("in-popoff").value),
+        },
+        thrust: {
+            dNozzle: parseFloat(document.getElementById("in-d-nozzle").value),
+            lTube: parseFloat(document.getElementById("in-l-tube").value),
+            dTube: parseFloat(document.getElementById("in-d-tube").value),
+        },
+        env: {
+            angle: parseFloat(document.getElementById("in-angle").value),
+            cd: parseFloat(document.getElementById("in-cd").value),
+            temp: parseFloat(document.getElementById("in-temp").value),
+            density: parseFloat(document.getElementById("in-env").value),
+        }
+    };
+}
+
+function setStatus(msg, isError = false) {
+    const el = document.getElementById("sys-status");
+    el.innerText = "SYSTEM STATUS: " + msg;
+    if (isError) {
+        el.classList.add("error");
+    } else {
+        el.classList.remove("error");
+    }
+}
+
+function runSimUI() {
+
+    console.log("runSimUI() called. Inputs changed.");
+
+    // 1. Gather Inputs
+    const mode = document.getElementById('in-mode').value;
+
+    let simInput = {
+        in_mode: mode,
+        in_v_bottle: parseFloat(document.getElementById('in-v-bottle').value),
+        in_l_rocket: parseFloat(document.getElementById('in-l-rocket').value),
+        in_fin_root: parseFloat(document.getElementById('in-fin-root').value),
+        in_fin_tip: parseFloat(document.getElementById('in-fin-tip').value),
+        in_fin_span: parseFloat(document.getElementById('in-fin-span').value),
+        in_d_body: parseFloat(document.getElementById('in-d-body').value),
+        in_m_empty: parseFloat(document.getElementById('in-m-empty').value),
+        in_m_ballast: parseFloat(document.getElementById('in-m-ballast').value),
+        in_water_ratio: parseFloat(document.getElementById('in-water-ratio').value),
+        in_pressure: parseFloat(document.getElementById('in-pressure').value),
+        in_burst: parseFloat(document.getElementById('in-burst').value),
+        in_salt_type: document.getElementById('in-salt-type').value,
+        in_mass_salt: parseFloat(document.getElementById('in-mass-salt').value),
+        in_vol_vinegar: parseFloat(document.getElementById('in-vol-vinegar').value),
+        in_acid_conc: parseFloat(document.getElementById('in-acid-conc').value),
+        in_gas_eff: parseFloat(document.getElementById('in-gas-eff').value),
+        in_popoff: parseFloat(document.getElementById('in-popoff').value),
+        in_d_nozzle: parseFloat(document.getElementById('in-d-nozzle').value),
+        in_l_tube: parseFloat(document.getElementById('in-l-tube').value),
+        in_d_tube: parseFloat(document.getElementById('in-d-tube').value),
+        in_angle: parseFloat(document.getElementById('in-angle').value),
+        in_cd: parseFloat(document.getElementById('in-cd').value),
+        in_temp: parseFloat(document.getElementById('in-temp').value),
+        in_env: parseFloat(document.getElementById('in-env').value)
+    };
+
+    try {
+        // 2. Call WASM Engine
+        const result = run_simulation(simInput);
+
+        // 3. Update Status
+        setStatus(result.sys_status, result.isError);
+
+        // 4. Update Top Stats Grid
+        document.getElementById('val-range').innerText = result.val_range.toFixed(2) + " m";
+        document.getElementById('val-ideal-range').innerText = result.val_ideal_range.toFixed(2) + " m";
+        document.getElementById('val-apogee').innerText = result.val_apogee.toFixed(2) + " m";
+        document.getElementById('val-max-v').innerText = result.val_max_v.toFixed(2) + " m/s";
+        document.getElementById('val-flight-time').innerText = result.val_flight_time.toFixed(2) + " s";
+        document.getElementById('val-burn-time').innerText = result.val_burn_time.toFixed(3) + " s";
+
+        if (mode === "CHEM") {
+            document.getElementById("val-cork-friction").innerText = result.val_cork_friction.toFixed(2) + " kgf";
+        }
+
+        const arrays = result;
+
+        // 6. Update Chart
+        updateChart(arrays);
+
+        // Important: free up memory from WASM
+
+
+    } catch (e) {
+        console.error("Simulation error:", e);
+        setStatus("SIMULATION ERROR", true);
+    }
+}
+
+function optimizeRange() {
+    console.log("CMA-ES Optimizer Triggered");
+    alert("CMA-ES Optimizer will run here via WASM, adjusting unlocked inputs to maximize range.");
+    // Engine would read DOM state to find variables without '.unlocked' class, mutate them, run simulations, and update the UI with best parameters.
+}
+
+// --- CHART.JS INTEGRATION ---
+
+// Custom Sticky Tooltip Plugin
+const getOrCreateTooltip = (chart) => {
+  let tooltipEl = chart.canvas.parentNode.querySelector('div.custom-chart-tooltip');
+
+  if (!tooltipEl) {
+    tooltipEl = document.createElement('div');
+    tooltipEl.classList.add('custom-chart-tooltip');
+    tooltipEl.style.opacity = 1; // Always show when pinned
+
+    const table = document.createElement('table');
+    table.style.margin = '0px';
+    tooltipEl.appendChild(table);
+    chart.canvas.parentNode.appendChild(tooltipEl);
+  }
+  return tooltipEl;
+};
+
+// Global variable to store pinned tooltip data
+let pinnedTooltip = null;
+
+const stickyTooltipPlugin = {
+    id: 'stickyTooltip',
+    afterEvent(chart, args) {
+        const event = args.event;
+        if (event.type === 'click') {
+            const elements = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+            if (elements.length > 0) {
+                const element = elements[0];
+                const datasetIndex = element.datasetIndex;
+                const index = element.index;
+
+                // Toggle pin
+                if (pinnedTooltip && pinnedTooltip.datasetIndex === datasetIndex && pinnedTooltip.index === index) {
+                    pinnedTooltip = null; // Unpin
+                } else {
+                    pinnedTooltip = { datasetIndex, index, x: event.x, y: event.y }; // Pin new
+                }
+                chart.draw(); // Force redraw to render/hide tooltip
+            }
+        }
+    },
+    afterDraw(chart) {
+        const tooltipEl = chart.canvas.parentNode.querySelector('div.custom-chart-tooltip');
+
+        if (!pinnedTooltip) {
+            if (tooltipEl) tooltipEl.style.opacity = 0;
+            return;
+        }
+
+        if (!tooltipEl) return;
+
+        // Retrieve the data for the pinned point
+        const { datasetIndex, index } = pinnedTooltip;
+        const dataset = chart.data.datasets[datasetIndex];
+        const dataPoint = dataset.data[index];
+        const color = dataset.borderColor;
+        const label = dataset.label;
+
+        // Format tooltip content
+        const tableRoot = tooltipEl.querySelector('table');
+        let innerHtml = `<thead><tr><th>${label}</th></tr></thead><tbody>`;
+        innerHtml += `<tr><td>X: ${dataPoint.x.toFixed(3)}</td></tr>`;
+        innerHtml += `<tr><td>Y: ${dataPoint.y.toFixed(3)}</td></tr>`;
+        innerHtml += `</tbody>`;
+
+        tableRoot.innerHTML = innerHtml;
+
+        // Position tooltip
+        const meta = chart.getDatasetMeta(datasetIndex);
+        const rect = chart.canvas.getBoundingClientRect();
+
+        // Ensure point still exists in current view
+        if(!meta.data[index]) {
+            pinnedTooltip = null;
+            tooltipEl.style.opacity = 0;
+            return;
+        }
+
+        const pointElement = meta.data[index];
+
+        // Center the tooltip relative to the point
+        tooltipEl.style.opacity = 1;
+        tooltipEl.style.left = pointElement.x + 'px';
+        tooltipEl.style.top = (pointElement.y - tooltipEl.offsetHeight - 10) + 'px';
+        tooltipEl.style.borderColor = color;
+    }
+};
+
+
+function initChart() {
+    const ctx = document.getElementById('mainChart').getContext('2d');
+
+    // Set default Chart.js font colors to match theme
+    Chart.defaults.color = '#8b9bb4';
+    Chart.defaults.font.family = "'Roboto Mono', monospace";
+
+    chartMain = new Chart(ctx, {
+        type: 'scatter', // Use scatter for flexible X/Y mapping
+        plugins: [stickyTooltipPlugin],
+        data: {
+            datasets: []
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false, // Turn off animation for fast re-renders
+            interaction: {
+                mode: 'nearest',
+                intersect: false, // Don't require hovering exactly over the point
+            },
+            plugins: {
+                tooltip: {
+                    enabled: false, // Disable native tooltip in favor of custom sticky one
+                },
+                zoom: {
+                    pan: {
+                        enabled: true,
+                        mode: 'xy'
+                    },
+                    zoom: {
+                        wheel: { enabled: true },
+                        pinch: { enabled: true },
+                        drag: { enabled: true, backgroundColor: 'rgba(0, 240, 255, 0.2)' },
+                        mode: 'xy'
+                    }
+                },
+                legend: {
+                    labels: { color: '#e0e6ed' }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'linear',
+                    position: 'bottom',
+                    title: { display: true, text: 'X Axis', color: '#00f0ff' },
+                    grid: { color: '#1e2d3d' }
+                },
+                y: {
+                    type: 'linear',
+                    position: 'left',
+                    title: { display: true, text: 'Primary Y', color: '#00f0ff' },
+                    grid: { color: '#1e2d3d' }
+                },
+                y2: {
+                    type: 'linear',
+                    position: 'right',
+                    title: { display: true, text: 'Secondary Y', color: '#39ff14' },
+                    grid: { drawOnChartArea: false }, // Prevent overlapping grid lines
+                    display: false // Hidden by default
+                }
+            }
+        }
+    });
+}
+
+function resetZoom() {
+    if (chartMain) {
+        chartMain.resetZoom();
+        pinnedTooltip = null; // Clear pinned tooltip on reset
+        chartMain.draw();
+    }
+}
+
+function updateChart(dataArrays) {
+    if (!chartMain) return;
+
+    // Get selected axes
+    const xKey = document.getElementById("sel-x-axis").value;
+    const y1Key = document.getElementById("sel-y1-axis").value;
+    const y2Key = document.getElementById("sel-y2-axis").value;
+
+    const datasets = [];
+
+    // Map labels for nice display
+    const axisLabels = {
+        't': 'Time (s)', 'x': 'Range (m)',
+        'y': 'Altitude (m)', 'v': 'Velocity (m/s)', 'a': 'Acceleration (m/s²)',
+        'T': 'Thrust (N)', 'P': 'Pressure (PSI)', 'm': 'Mass (kg)', 'mdot': 'Mass Flow (kg/s)',
+        'temp': 'Temp (C)', 'dV': 'Gas Vol (L)', 'Fd': 'Drag (N)',
+        'com': 'CoM (m)', 'cop': 'CoP (m)', 'sm': 'Static Margin'
+    };
+
+    // Update X-Axis title
+    chartMain.options.scales.x.title.text = axisLabels[xKey] || xKey;
+
+    // Prepare Primary Dataset (Y1)
+    if (dataArrays[y1Key]) {
+        const d1 = [];
+        for (let i = 0; i < dataArrays[xKey].length; i++) {
+            d1.push({ x: dataArrays[xKey][i], y: dataArrays[y1Key][i] });
+        }
+        datasets.push({
+            label: axisLabels[y1Key],
+            data: d1,
+            borderColor: '#00f0ff', // Cyan
+            backgroundColor: 'transparent',
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            showLine: true,
+            borderWidth: 2,
+            yAxisID: 'y'
+        });
+        chartMain.options.scales.y.title.text = axisLabels[y1Key];
+        chartMain.options.scales.y.display = true;
+    }
+
+    // Prepare Secondary Dataset (Y2)
+    if (y2Key !== "none" && dataArrays[y2Key]) {
+        const d2 = [];
+        for (let i = 0; i < dataArrays[xKey].length; i++) {
+            d2.push({ x: dataArrays[xKey][i], y: dataArrays[y2Key][i] });
+        }
+        datasets.push({
+            label: axisLabels[y2Key],
+            data: d2,
+            borderColor: '#39ff14', // Green
+            backgroundColor: 'transparent',
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            showLine: true,
+            borderWidth: 2,
+            borderDash: [],
+            yAxisID: 'y2'
+        });
+        chartMain.options.scales.y2.title.text = axisLabels[y2Key];
+        chartMain.options.scales.y2.display = true;
+    } else {
+        chartMain.options.scales.y2.display = false;
+    }
+
+    // Unpin tooltip if axes changed
+    pinnedTooltip = null;
+
+    chartMain.data.datasets = datasets;
+    chartMain.update();
+}
+
+// --- MOCK DATA GENERATOR (Temporary) ---
+
+</script>
+
+    <!-- MATH PROOF MODAL -->
+    <div id="proof-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="document.getElementById('proof-modal').style.display='none'">&times;</span>
+            <div class="proof-container" style="padding:0; box-shadow:none; border:none; background:transparent;">
+        <h1>Chứng minh Nền tảng Toán học (Math Proof)</h1>
+
+        <h2>1.1. Hệ quy chiếu Phi quán tính & Bernoulli Không ổn định</h2>
+        <p>Trong môi trường bay, thiết bị bị gia tốc liên tục, tạo ra một hệ quy chiếu phi quán tính. Gia tốc tác dụng lên cột chất lỏng (\(a_{longitudinal}\)) là hình chiếu tích vô hướng của vector gia tốc toàn phần lên vector định hướng quỹ đạo :</p>
+
+        <div class="math-block">
+            $$a_{longitudinal} = \vec{a} \cdot \hat{u} = \frac{a_x v_x + a_y v_y}{v_{mag}}$$
+        </div>
+
+        <p>Phương trình Bernoulli tĩnh học hoàn toàn vô hiệu trong trường hợp này. Ta phải xuất phát từ phương trình Euler đối với dòng chảy trong hệ quy chiếu đang gia tốc :</p>
+
+        <div class="math-block">
+            $$\frac{\partial \vec{V}}{\partial t} + (\vec{V} \cdot \nabla)\vec{V} = -\frac{1}{\rho}\nabla P - \nabla(g z) - \vec{a}_{frame}$$
+        </div>
+
+        <p>Giả định dòng chảy không xoáy, lấy tích phân đường dọc theo đường dòng từ mặt thoáng cột nước (1) đến vòi xả (2) :</p>
+
+        <div class="math-block">
+            $$\int_1^2 \frac{\partial \vec{V}}{\partial t} \cdot d\vec{s} + \frac{v_2^2}{2} - \frac{v_1^2}{2} + \frac{P_2 - P_1}{\rho_{fluid}} + (g + a_{frame})(z_2 - z_1) = 0$$
+        </div>
+
+        <p>Thành phần tích phân gia tốc \(\int_1^2 \frac{\partial \vec{V}}{\partial t} \cdot d\vec{s} \approx a_{longitudinal} \cdot H\) tạo ra cột áp gia tốc. Giải phương trình, ta thu được vận tốc xả nước phi tĩnh :</p>
+
+        <div class="math-block">
+            $$v_e = \sqrt{2 \left( \frac{P_{chamber} - P_{atm}}{\rho_{fluid}} + (g + a_{longitudinal})H \right)}$$
+        </div>
+
+        <h2>1.2. Định luật Bảo toàn và Hệ số Vena Contracta (\(C_c = 0.5\))</h2>
+        <p>Dòng nước khi chui qua lỗ hẹp chịu quán tính cực lớn khiến các đường dòng không thể uốn cong hoàn hảo, gây thắt nghẽn (Vena Contracta).<br>
+Lực đẩy tĩnh ép dòng nước qua lỗ diện tích \(A\) là \(F = \rho g H A\). Tốc độ thay đổi động lượng tại tiết diện co thắt \(a_J\) là :</p>
+
+        <div class="math-block">
+            $$\dot{p} = \dot{m} \cdot v = \rho a_J v^2$$
+        </div>
+
+        <p>Bảo toàn năng lượng cho \(v^2 = 2gH\). Cân bằng \(F = \dot{p}\) :</p>
+
+        <div class="math-block">
+            $$\rho g H A = 2 \rho g H a_J \implies A = 2 a_J \implies C_c = \frac{a_J}{A} = 0.5$$
+        </div>
+
+        <p>Trong thực tế với lỗ xả sắc cạnh (sharp orifice), hệ số này xấp xỉ \(0.611\), đóng vai trò quyết định dòng khối lượng :</p>
+
+        <div class="math-block">
+            $$\dot{m}_w = C_c \cdot C_v \cdot \rho_{fluid} \cdot A_e \cdot v_e$$
+        </div>
+
+        <h2>1.3. Khí động học Siêu thanh: Chứng minh Choked Flow (Mach 1)</h2>
+        <p>Khi hết nước, pha xả khí nén siêu thanh bắt đầu. Từ phương trình liên tục \(\dot{m} = \rho V A\), định luật isentropic \(P T^{-\frac{\gamma}{\gamma - 1}} = \text{const}\), và phương trình khí lý tưởng, ta có hàm lưu lượng :</p>
+
+        <div class="math-block">
+            $$\dot{m}(M) = \frac{A P_0}{\sqrt{T_0}} \sqrt{\frac{\gamma}{R}} \cdot M \cdot \left(1 + \frac{\gamma - 1}{2} M^2\right)^{-\frac{\gamma + 1}{2(\gamma - 1)}}$$
+        </div>
+
+        <p>Tính đạo hàm \(\frac{d\dot{m}}{dM}\) và đặt bằng 0. Với \(C = \frac{\gamma + 1}{2(\gamma - 1)}\) và \(D = \frac{\gamma - 1}{2}\) :</p>
+
+        <div class="math-block">
+            $$(1 + D M^2)^{-C} - 2 C D M^2 (1 + D M^2)^{-C-1} = 0 \implies 1 + D M^2 (1 - 2C) = 0$$
+        </div>
+
+        <p>Thế ngược lại \(C\) và \(D\), toán học chứng minh \(M^2 = 1 \implies M = 1\). Việc thay \(M=1\) trở lại tạo ra phương trình xả nghẹt :</p>
+
+        <div class="math-block">
+            $$\dot{m}^* = A^* P_0 \sqrt{\frac{\gamma}{R T_0}} \left(\frac{2}{\gamma + 1}\right)^{\frac{\gamma + 1}{2(\gamma - 1)}}$$
+        </div>
+
+        <p>Do hơi nước bão hòa, \(\gamma \approx 1.34\), ép tỷ số chênh lệch tới hạn xuống \(\alpha_c \approx 0.455\).</p>
+
+        <h2>1.4. Nhiệt động lực học Buồng đốt (Quá trình Đa hướng)</h2>
+        <p>Do quá trình giãn nở không thể đẳng nhiệt hay hoàn toàn đoạn nhiệt (vì truyền nhiệt từ nước sang khí), ta dùng Định luật 1 Nhiệt động lực học \(dQ = dU + dW\) với \(dU = N c_v dT\) và \(dW = P dV\) được sử dụng để dẫn xuất quá trình đa hướng :</p>
+
+        <div class="math-block">
+            $$(c - c_v) (P dV + V dP) = (c_p - c_v) P dV$$
+        </div>
+
+        <p>Sử dụng đạo hàm theo thời gian, ta có phương trình vi phân sụt áp :</p>
+
+        <div class="math-block">
+            $$\frac{dP}{dt} = \frac{\gamma - 1}{V_{air}} \frac{dQ}{dt} - \gamma \frac{P}{V_{air}} \frac{dV_{air}}{dt}$$
+        </div>
+
+        <p>Với \(dQ/dt\) tính bằng Tương quan Nusselt và hiệu ứng sương mù ngưng tụ chi phối bởi Phương trình Antoine. Đạo hàm \(dV_{air}/dt\) phải dùng đạo hàm chuỗi để cộng hưởng sự co ngót vỏ chai theo định luật Hooke :</p>
+
+        <div class="math-block">
+            $$\frac{dV_{air}}{dt} = A_e v_e - \frac{dV_{bottle}}{dP} \frac{dP}{dt}$$
+        </div>
+
+        <h2>1.5. Khí động học Chuyển âm & Lý thuyết Thân mảnh</h2>
+        <p>Khi qua mức \(100\text{ m/s}\), không khí bị nén. Biến đổi Prandtl-Glauert xử lý phương trình PDE eliptic :</p>
+
+        <div class="math-block">
+            $$(1 - M_\infty^2) \frac{\partial^2 \phi}{\partial x^2} + \frac{\partial^2 \phi}{\partial y^2} + \frac{\partial^2 \phi}{\partial z^2} = 0 \implies C_{D(Mach)} = \frac{C_{D0}}{\sqrt{1 - M_\infty^2}}$$
+        </div>
+
+        <p>Về độ ổn định (phương trình Barrowman), Lý thuyết Thân mảnh (Slender Body Theory) lấy tích phân Đạo hàm Dòng (Material Derivative) dọc theo mũi nón, triệt tiêu mọi biên dạng \(d(x)\) :</p>
+
+        <div class="math-block">
+            $$Z_{nose} = \int_0^{L_N} \rho_{air} U^2 \alpha \frac{\pi}{4} \left( \frac{\partial d^2}{\partial x} \right) dx \implies C_{N\alpha, nose} = 2.0$$
+        </div>
+
+        <h2>1.6. Tối ưu hóa CMA-ES & Đa tạp Riemann</h2>
+        <p>CMA-ES cập nhật phân phối \(\mathcal{N}(m, C)\) trên đa tạp Riemann bằng Gradient Tự nhiên :</p>
+
+        <div class="math-block">
+            $$\tilde{\nabla} J(\theta) = F^{-1}(\theta) \nabla_\theta J(\theta)$$
+        </div>
+
+        <p>Với \(F(\theta)\) là Ma trận Thông tin Fisher. Việc cập nhật Ma trận Hiệp phương sai toàn diện (Full Covariance) giúp học các tương quan chéo (cross-dependencies) phi tuyến.</p>
+    </div>
+
+</body>
+        </div>
+    </div>
+
+    <!-- ARCHITECTURE MODAL -->
+    <div id="arch-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="document.getElementById('arch-modal').style.display='none'">&times;</span>
+            <div class="doc-container" style="padding:0; box-shadow:none; border:none; background:transparent;"><div class="proof-container">
+        <h2>Kiến Trúc Hệ Thống (System Architecture)</h2>
+
+        <pre><code>low-level overview (cấu trúc cây tree):
+
+compute_derivatives(t, Y, params)
+
+|
+
+├──  GIẢI NÉN VECTOR TRẠNG THÁI & THAM SỐ
+
+| ├── Trích xuất biến thiên (Y): x, y, vx, vy, m_w, P
+
+| └── Trích xuất hằng số (params): C_d_base, A_c, A_e, rho_w, rho_air, P_atm, g, V_0, L_tube, gamma, R...
+
+|
+
+├──  KHÍ ĐỘNG HỌC & LỰC CẢN (Fd)
+
+| ├── v_mag = sqrt(vx2 + vy2)
+
+| ├── dist = sqrt((x - x0)**2 + (y - y0)2)
+
+| ├── Xác định hướng:
+
+| | ├── cos_th = vx / (v_mag + 1e-9)  // Tránh chia cho 0
+
+| | └── sin_th = vy / (v_mag + 1e-9)
+
+| ├── Tính độ ổn định (sm) = calculate_static_margin(m_w)
+
+| ├── WOBBLE_FACTOR = calc_wobble_factor(sm, v_mag, t)  <--
+
+| ├── C_d_eff = C_d_base * WOBBLE_FACTOR
+
+| └── Fd = 0.5 * rho_air * C_d_eff * A_c * (v_mag2)
+
+|
+
+├──  TÍNH GIA TỐC DỌC TRỤC & BIẾN DẠNG VỎ CHAI (PET)
+
+| ├── Lấy gia tốc bước trước: a_prev_x, a_prev_y
+
+| ├── a_longitudinal = (a_prev_x * cos_th) + ((a_prev_y + g) * sin_th) <--
+
+| └── dV_elastic = V_0 * (P - P_atm) * (D / (2 * E * t_wall)) (Độ phình Hooke cho thành mỏng)
+
+|
+
+├──  BỘ ĐỊNH TUYẾN LỰC ĐẨY (MAIN PHASE TREE)
+
+| |
+
+| ├── [PHA A]: CÒN NƯỚC (if m_w > 0)
+
+| | |
+
+| | ├── A1: Trong ống phóng (if dist < L_tube)
+
+| | | ├── F_friction_O_ring = P_contact * Area_contact * mu  <--
+
+| | | ├── Thrust_piston = (P - P_atm) * A_tube - F_friction_O_ring
+
+| | | ├── dm_w_dt = 0
+
+| | | └── dP_dt = - (gamma * P / V_gas) * (A_tube * v_mag) (Tụt áp do tăng thể tích ống)
+
+| | |
+
+| | ├── A2: Đã rời ống (else)
+
+| | | ├── P_bottom = (P - P_atm) + (rho_w * a_longitudinal * h_water) (Áp suất thủy tĩnh đáy)
+
+| | | ├── v_e = sqrt(2 * P_bottom / rho_w) (Bernoulli phi quán tính)
+
+| | | ├── dm_w_dt = -C_d_nozzle * A_e * rho_w * v_e
+
+| | | └── Thrust_nước = abs(dm_w_dt) * v_e
+
+| | |
+
+| | └── Nhiệt Động Học Pha A (Khí nén đẩy nước)
+
+| | | ├── V_gas = V_0 + dV_elastic - (m_w / rho_w)
+
+| | | ├── T_chamber = (P * V_gas) / (m_air * R)
+
+| | | ├── h_conv = calc_convective_coeff(Reynolds, Prandtl)
+
+| | | ├── dQ_dt = h_conv * A_surf * (T_atm - T_chamber) <--
+
+| | | └── dP_dt = ((gamma - 1) / V_gas) * dQ_dt - (gamma * P / V_gas) * (dV_gas_dt)
+
+| |
+
+| ├── [PHA B]: HẾT NƯỚC, CÒN KHÍ (else if P > P_atm * 1.01)
+
+| | ├── Ghi đè: dm_w_dt = 0, V_gas = V_0 + dV_elastic
+
+| | |
+
+| | ├── B1: Dùng Hóa Học (if is_chem == True)
+
+| | | ├── dP_dt = f(m_citric, m_baking_soda) - tốc độ phản ứng
+
+| | | └── Thrust = 0 (Chỉ tạo áp, không có dòng khối lượng lớn thoát ra)
+
+| | |
+
+| | └── B2: Dùng Khí Nén Xả Trực Tiếp (else)
+
+| | | ├── p_ratio = P_atm / P
+
+| | | ├── B2.a: Nghẹt / Choked Flow (if p_ratio < 0.455)
+
+| | | | ├── v_gas = sqrt(gamma * R * T_chamber) (Đạt Mach 1)
+
+| | | | ├── dm_air_dt = -C_d * A_e * P * sqrt(gamma / (R * T_chamber)) * (2/(gamma+1))^((gamma+1)/(2*(gamma-1)))
+
+| | | | └── Thrust_siêu_âm = abs(dm_air_dt) * v_gas + (P_exit - P_atm) * A_e
+
+| | | |
+
+| | | ├── B2.b: Dưới âm / Subsonic (else)
+
+| | | | ├── Mach = sqrt((2 / (gamma - 1)) * ((P / P_atm)**((gamma - 1) / gamma) - 1))
+
+| | | | ├── v_gas = Mach * sqrt(gamma * R * T_exit)
+
+| | | | ├── dm_air_dt = Khối lượng khí thoát ra ở chế độ dưới âm
+
+| | | | └── Thrust_dưới_âm = abs(dm_air_dt) * v_gas
+
+| | | |
+
+| | | └── Nhiệt Động Học Pha B (Khí tự xả làm lạnh buồng đốt)
+
+| | | ├── dQ_dt = h_conv * A_surf * (T_atm - T_chamber)
+
+| | | └── dP_dt = (gamma * R * T_chamber / V_gas) * dm_air_dt + ((gamma - 1) / V_gas) * dQ_dt
+
+| |
+
+| └── [PHA C]: BAY TỰ DO / COASTING (else)
+
+|   ├── Thrust = 0
+
+|   ├── dm_w_dt = 0, dm_air_dt = 0
+
+|   └── Ép P = P_atm, dP_dt = 0
+
+|
+
+├──  ỔN ĐỊNH KHÍ ĐỘNG HỌC (BARROWMAN)
+
+| ├── Center of Mass (CoM_total):
+
+| | └── CoM_total = (m_empty * CoM_empty + m_w * CoM_water) / (m_empty + m_w)
+
+| ├── Center of Pressure (CoP):
+
+| | └── CoP = ((C_N)_N * X_N + (C_N)_F * X_F) / ((C_N)_N + (C_N)_F)
+
+| └── Static Margin (sm):
+
+|   └── sm = (CoP - CoM_total) / d_body
+
+|   └── Trả sm về khối  để tính WOBBLE_FACTOR
+
+|
+
+├──  TỔNG HỢP GIA TỐC BƯỚC NHẢY (NEWTON 2)
+
+| ├── Khối lượng tổng: m_total = m_empty + m_w + m_air
+
+| |
+
+| ├── Ràng buộc mặt đất (if dist < L_tube)
+
+| | ├── a_net = (Thrust - Fd) / m_total - g * sin(theta_0)
+
+| | ├── Cắt âm: if a_net < 0 and dist == 0 then a_net = 0 (Chống lún mặt đất)
+
+| | ├── ax = a_net * cos(theta_0)
+
+| | └── ay = a_net * sin(theta_0)
+
+| |
+
+| └── Bay tự do (else)
+
+|   ├── ax = (Thrust * cos_th - Fd * cos_th) / m_total
+
+|   └── ay = (Thrust * sin_th - Fd * sin_th) / m_total - g
+
+|
+
+└──  HOÀN TẤT
+
+  └── return [vx, vy, ax, ay, dm_w_dt, dP_dt]</code></pre>
+
+    </div>
+
+</body></div>
+        </div>
+    </div>
+
+</body>
+</html>
