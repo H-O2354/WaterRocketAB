@@ -564,56 +564,56 @@ fieldset {
                 <div class="input-group">
                     <label>Thể tích chai (L) </label>
                     <div class="input-row">
-                        <input type="number" id="in-v-bottle" value="0.5" step="0.1" onchange="runSimUI()">
+                        <input type="number" id="in-v-bottle" value="0.5" step="0.1" min="0.1" max="5.0" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Chiều dài tổng thể (mm) </label>
                     <div class="input-row">
-                        <input type="number" id="in-l-rocket" value="60" onchange="runSimUI()">
+                        <input type="number" id="in-l-rocket" value="60" min="10" max="200" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Đường kính thân (mm) </label>
                     <div class="input-row">
-                        <input type="number" id="in-d-body" value="65" onchange="runSimUI()">
+                        <input type="number" id="in-d-body" value="65" min="20" max="150" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Khối lượng rỗng (kg) </label>
                     <div class="input-row">
-                        <input type="number" id="in-m-empty" value="0.1" step="0.01" onchange="runSimUI()">
+                        <input type="number" id="in-m-empty" value="0.1" step="0.01" min="0.01" max="1.0" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Khối lượng tạ mũi (kg) </label>
                     <div class="input-row">
-                        <input type="number" id="in-m-ballast" value="0.005" step="0.01" onchange="runSimUI()">
+                        <input type="number" id="in-m-ballast" value="0.005" step="0.01" min="0" max="0.5" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Chiều dài chân cánh (mm) </label>
                     <div class="input-row">
-                        <input type="number" id="in-fin-root" value="25" onchange="runSimUI()">
+                        <input type="number" id="in-fin-root" value="25" min="5" max="100" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Chiều dài đỉnh cánh (mm) </label>
                     <div class="input-row">
-                        <input type="number" id="in-fin-tip" value="25" onchange="runSimUI()">
+                        <input type="number" id="in-fin-tip" value="25" min="5" max="100" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Sải cánh (mm) </label>
                     <div class="input-row">
-                        <input type="number" id="in-fin-span" value="25" onchange="runSimUI()">
+                        <input type="number" id="in-fin-span" value="25" min="5" max="100" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
@@ -624,21 +624,21 @@ fieldset {
                 <div class="input-group">
                     <label>Tỷ lệ đổ nước (%) </label>
                     <div class="input-row">
-                        <input type="number" id="in-water-ratio" value="33" onchange="runSimUI()">
+                        <input type="number" id="in-water-ratio" value="33" min="0" max="80" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Áp suất bơm ban đầu (PSI) </label>
                     <div class="input-row">
-                        <input type="number" id="in-pressure" value="60" onchange="runSimUI()">
+                        <input type="number" id="in-pressure" value="60" min="10" max="200" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Áp suất nổ giới hạn (PSI) </label>
                     <div class="input-row">
-                        <input type="number" id="in-burst" value="120" onchange="runSimUI()">
+                        <input type="number" id="in-burst" value="120" min="30" max="300" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
@@ -656,35 +656,35 @@ fieldset {
                 <div class="input-group">
                     <label>Khối lượng muối (g) </label>
                     <div class="input-row">
-                        <input type="number" id="in-mass-salt" value="7.6" onchange="runSimUI()">
+                        <input type="number" id="in-mass-salt" value="7.6" min="1" max="100" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Thể tích giấm (ml) </label>
                     <div class="input-row">
-                        <input type="number" id="in-vol-vinegar" value="109" onchange="runSimUI()">
+                        <input type="number" id="in-vol-vinegar" value="109" min="10" max="1000" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Nồng độ Acid (% m/v) </label>
                     <div class="input-row">
-                        <input type="number" id="in-acid-conc" value="5" onchange="runSimUI()">
+                        <input type="number" id="in-acid-conc" value="5" min="1" max="20" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Hiệu suất sinh khí (%) </label>
                     <div class="input-row">
-                        <input type="number" id="in-gas-eff" value="85" onchange="runSimUI()">
+                        <input type="number" id="in-gas-eff" value="85" min="10" max="100" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Áp suất bung nút (PSI) </label>
                     <div class="input-row">
-                        <input type="number" id="in-popoff" value="70" onchange="runSimUI()">
+                        <input type="number" id="in-popoff" value="70" min="10" max="200" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
@@ -695,21 +695,21 @@ fieldset {
                 <div class="input-group">
                     <label>Đường kính Vòi phun (mm) </label>
                     <div class="input-row">
-                        <input type="number" id="in-d-nozzle" value="21" onchange="runSimUI()">
+                        <input type="number" id="in-d-nozzle" value="21" min="5" max="50" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Chiều dài ống phóng (m) </label>
                     <div class="input-row">
-                        <input type="number" id="in-l-tube" value="0.5" step="0.1" onchange="runSimUI()">
+                        <input type="number" id="in-l-tube" value="0.5" step="0.1" min="0" max="2.0" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Đường kính ngoài ống phóng (mm) </label>
                     <div class="input-row">
-                        <input type="number" id="in-d-tube" value="21" onchange="runSimUI()">
+                        <input type="number" id="in-d-tube" value="21" min="5" max="50" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
@@ -726,21 +726,21 @@ fieldset {
                 <div class="input-group">
                     <label>Góc phóng (Độ) </label>
                     <div class="input-row">
-                        <input type="number" id="in-angle" value="45" onchange="runSimUI()">
+                        <input type="number" id="in-angle" value="45" min="0" max="90" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Hệ số cản không khí (Cd) </label>
                     <div class="input-row">
-                        <input type="number" id="in-cd" value="0.45" step="0.01" onchange="runSimUI()">
+                        <input type="number" id="in-cd" value="0.45" step="0.01" min="0.1" max="2.0" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
                 <div class="input-group">
                     <label>Nhiệt độ không khí (C) </label>
                     <div class="input-row">
-                        <input type="number" id="in-temp" value="27" onchange="runSimUI()">
+                        <input type="number" id="in-temp" value="27" min="-10" max="50" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
                     </div>
                 </div>
@@ -1747,7 +1747,7 @@ async function optimizeRange() {
 
     let es;
     try {
-        es = new WasmCmaes(initialGuess, sigma, { max_iterations: maxIterations });
+        es = new WasmCmaes(initialGuess, sigma, { max_iterations: maxIterations, cov_model: 'full' });
     } catch(e) {
         setStatus("LỖI KHỞI TẠO CMA-ES", true);
         console.error(e);
