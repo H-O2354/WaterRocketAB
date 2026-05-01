@@ -1083,7 +1083,12 @@ Lực đẩy tĩnh ép dòng nước qua lỗ diện tích \(A\) là \(F = \rho 
 
 
 
-    <script>
+    <script type="module">
+window.optimizeRange = optimizeRange;
+window.toggleLock = toggleLock;
+window.toggleMode = toggleMode;
+window.runSimUI = runSimUI;
+window.resetZoom = resetZoom;
 
 // Hằng số vật lý chuẩn SI
 const Constants = {
@@ -1462,6 +1467,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- UI LOGIC ---
 
+window.toggleMode = toggleMode;
 function toggleMode() {
     const mode = document.getElementById("in-mode").value;
     const fsAir = document.getElementById("fs-air");
@@ -1479,6 +1485,7 @@ function toggleMode() {
     }
 }
 
+window.toggleLock = toggleLock;
 function toggleLock(btn) {
     if (btn.innerText === "KHÓA") {
         btn.innerText = "MỞ";
@@ -1553,6 +1560,7 @@ function setStatus(msg, isError = false) {
     }
 }
 
+window.runSimUI = runSimUI;
 function runSimUI() {
 
     console.log("runSimUI() called. Inputs changed.");
@@ -1622,79 +1630,278 @@ function runSimUI() {
 }
 
 // --- SIMPLE RANDOM SEARCH OPTIMIZER (Replacing CMA-ES for JS) ---
-function optimizeRange() {
-    console.log("Optimizer Triggered");
+// --- WASM CMA-ES OPTIMIZER ---
+import init, { WasmCmaes } from "./pkg/cmaes_wasm.js";
 
-    // Find all unlocked inputs
-    const inputs = document.querySelectorAll('#controls input[type="number"]');
-    const unlockedInputs = [];
-    inputs.forEach(input => {
-        const btn = input.nextElementSibling;
-        if (btn && btn.classList.contains('unlocked')) {
-            unlockedInputs.push(input);
+let isOptimizing = false;
+let optimizationTimeout = null;
+let wasmInitDone = false;
+
+async function ensureWasmInitialized() {
+    if (!wasmInitDone) {
+        setStatus("LOADING WASM CMA-ES...", false);
+        try {
+            await init();
+            wasmInitDone = true;
+            setStatus("WASM CMA-ES READY", false);
+        } catch (e) {
+            console.error("WASM initialization failed:", e);
+            setStatus("WASM INITIALIZATION FAILED", true);
         }
-    });
+    }
+}
 
-    if (unlockedInputs.length === 0) {
-        alert("Vui lòng mở khóa (MỞ) ít nhất một thông số để tối ưu hóa.");
+window.optimizeRange = optimizeRange;
+async function optimizeRange() {
+    if (isOptimizing) {
+        // Cancel optimization
+        isOptimizing = false;
+        clearTimeout(optimizationTimeout);
+        document.querySelector('button[onclick="optimizeRange()"]').innerHTML = 'CHẠY TỐI ƯU HÓA CMA-ES';
+        document.querySelector('button[onclick="optimizeRange()"]').classList.remove('running');
+        const pb = document.getElementById("opt-progress");
+        if(pb) pb.style.width = "0%";
+        setStatus("TỐI ƯU HÓA ĐÃ BỊ HỦY", false);
         return;
     }
 
-    alert("Đang chạy thuật toán tối ưu hóa...");
+    await ensureWasmInitialized();
+    if (!wasmInitDone) return;
 
-    // Simple random search since full CMA-ES in JS is complex and might freeze UI
-    // We will do 500 iterations of random mutations around current values
-    let bestRange = -1;
-    let bestParams = {};
-
-    // Save original state
-    const originalParams = {};
-    unlockedInputs.forEach(input => {
-        originalParams[input.id] = parseFloat(input.value);
-        bestParams[input.id] = parseFloat(input.value);
+    // Gather unlocked inputs and their bounds
+    let unlocked = [];
+    document.querySelectorAll('.opt-lock').forEach(btn => {
+        if (btn.innerText === 'MỞ' || btn.innerText === '🔓') {
+            const inputEl = btn.previousElementSibling;
+            const inputId = inputEl.id;
+            if (!inputEl.disabled) {
+                unlocked.push({
+                    id: inputId,
+                    min: parseFloat(inputEl.min) || 0,
+                    max: parseFloat(inputEl.max) || 100,
+                    current: parseFloat(inputEl.value)
+                });
+            }
+        }
     });
 
-    // Run baseline
-    const baselineResult = run_simulation();
-    if (!baselineResult.isError) {
-        bestRange = baselineResult.range;
+    if (unlocked.length === 0) {
+        setStatus("LỖI TỐI ƯU HÓA: CẦN MỞ KHÓA ÍT NHẤT 1 BIẾN", true);
+        return;
     }
 
-    const iterations = 500;
-    for (let i = 0; i < iterations; i++) {
-        // Mutate unlocked parameters
-        unlockedInputs.forEach(input => {
-            const currentVal = originalParams[input.id];
-            // Random mutation +/- 20%
-            const mutation = currentVal * 0.2 * (Math.random() * 2 - 1);
-            let newVal = currentVal + mutation;
+    // Add Progress Bar to DOM if not exists
+    let statusDiv = document.getElementById("sys-status");
+    if (!document.getElementById("opt-progress-container")) {
+        let pContainer = document.createElement("div");
+        pContainer.id = "opt-progress-container";
+        pContainer.style.width = "100%";
+        pContainer.style.height = "5px";
+        pContainer.style.backgroundColor = "rgba(255,255,255,0.1)";
+        pContainer.style.marginTop = "5px";
+        pContainer.style.borderRadius = "2px";
 
-            // Constrain
-            if (newVal < 0) newVal = 0.001;
+        let pBar = document.createElement("div");
+        pBar.id = "opt-progress";
+        pBar.style.width = "0%";
+        pBar.style.height = "100%";
+        pBar.style.backgroundColor = "var(--accent-2)";
+        pBar.style.transition = "width 0.1s linear";
 
-            input.value = newVal.toFixed(3);
-        });
+        pContainer.appendChild(pBar);
+        statusDiv.parentNode.insertBefore(pContainer, statusDiv.nextSibling);
 
-        // Test new params
-        const result = run_simulation();
-        if (!result.isError && result.range > bestRange) {
-            bestRange = result.range;
-            unlockedInputs.forEach(input => {
-                bestParams[input.id] = parseFloat(input.value);
-            });
+        let estDiv = document.createElement("div");
+        estDiv.id = "opt-estimate";
+        estDiv.style.fontSize = "10px";
+        estDiv.style.color = "#88a0b0";
+        estDiv.style.textAlign = "right";
+        estDiv.style.marginTop = "2px";
+        statusDiv.parentNode.insertBefore(estDiv, pContainer.nextSibling);
+    }
+    const pBar = document.getElementById("opt-progress");
+    const estDiv = document.getElementById("opt-estimate");
+
+    isOptimizing = true;
+    document.querySelector('button[onclick="optimizeRange()"]').innerHTML = '⏹ DỪNG TỐI ƯU';
+    document.querySelector('button[onclick="optimizeRange()"]').classList.add('running');
+    setStatus("ĐANG CHẠY CMA-ES...", false);
+
+    const startTime = performance.now();
+
+    // Prepare CMA-ES
+    const dim = unlocked.length;
+    const initialGuess = new Float64Array(dim);
+    const bounds = [];
+
+    for (let i = 0; i < dim; i++) {
+        // Map current inputs to [0, 1] for CMA-ES
+        let normalized = (unlocked[i].current - unlocked[i].min) / (unlocked[i].max - unlocked[i].min);
+        // Clamp to avoid initial out-of-bounds
+        normalized = Math.max(0.01, Math.min(0.99, normalized));
+        initialGuess[i] = normalized;
+    }
+
+    const sigma = 0.2; // Initial step size
+    const maxIterations = 200; // Define max iterations
+
+    let es;
+    try {
+        es = new WasmCmaes(initialGuess, sigma, { max_iterations: maxIterations });
+    } catch(e) {
+        setStatus("LỖI KHỞI TẠO CMA-ES", true);
+        console.error(e);
+        isOptimizing = false;
+        document.querySelector('button[onclick="optimizeRange()"]').innerHTML = 'CHẠY TỐI ƯU HÓA CMA-ES';
+        document.querySelector('button[onclick="optimizeRange()"]').classList.remove('running');
+        return;
+    }
+
+    const lambda = es.lambda;
+    let iteration = 0;
+
+    let bestGlobalRange = -Infinity;
+    let bestGlobalInputs = null;
+
+    // Objective function wraps the physics sim
+    function objectiveFunction(normalizedValues) {
+        let penalty = 0;
+
+        // Restore values and check bounds
+        for (let i = 0; i < dim; i++) {
+            let nVal = normalizedValues[i];
+            if (nVal < 0) { penalty += 1000 * Math.pow(-nVal, 2); nVal = 0; }
+            if (nVal > 1) { penalty += 1000 * Math.pow(nVal - 1, 2); nVal = 1; }
+
+            const realVal = unlocked[i].min + nVal * (unlocked[i].max - unlocked[i].min);
+            document.getElementById(unlocked[i].id).value = realVal;
+        }
+
+    let simInput = {
+        in_mode: document.getElementById('in-mode').value,
+        in_v_bottle: parseFloat(document.getElementById('in-v-bottle').value),
+        in_l_rocket: parseFloat(document.getElementById('in-l-rocket').value),
+        in_fin_root: parseFloat(document.getElementById('in-fin-root').value),
+        in_fin_tip: parseFloat(document.getElementById('in-fin-tip').value),
+        in_fin_span: parseFloat(document.getElementById('in-fin-span').value),
+        in_d_body: parseFloat(document.getElementById('in-d-body').value),
+        in_m_empty: parseFloat(document.getElementById('in-m-empty').value),
+        in_m_ballast: parseFloat(document.getElementById('in-m-ballast').value),
+        in_water_ratio: parseFloat(document.getElementById('in-water-ratio').value),
+        in_pressure: parseFloat(document.getElementById('in-pressure').value),
+        in_burst: parseFloat(document.getElementById('in-burst').value),
+        in_salt_type: document.getElementById('in-salt-type').value,
+        in_mass_salt: parseFloat(document.getElementById('in-mass-salt').value),
+        in_vol_vinegar: parseFloat(document.getElementById('in-vol-vinegar').value),
+        in_acid_conc: parseFloat(document.getElementById('in-acid-conc').value),
+        in_gas_eff: parseFloat(document.getElementById('in-gas-eff').value),
+        in_popoff: parseFloat(document.getElementById('in-popoff').value),
+        in_d_nozzle: parseFloat(document.getElementById('in-d-nozzle').value),
+        in_l_tube: parseFloat(document.getElementById('in-l-tube').value),
+        in_d_tube: parseFloat(document.getElementById('in-d-tube').value),
+        in_angle: parseFloat(document.getElementById('in-angle').value),
+        in_cd: parseFloat(document.getElementById('in-cd').value),
+        in_temp: parseFloat(document.getElementById('in-temp').value),
+        in_env: parseFloat(document.getElementById('in-env').value)
+    };
+        // Run simulation
+        const result = run_simulation(simInput);
+
+        let range = result.val_range || 0;
+        if (result.isError) penalty += 1000;
+
+        // We want to maximize range, CMA-ES minimizes. Return -range + penalty
+        return -range + penalty;
+    }
+
+    function cmaesLoop() {
+        if (!isOptimizing) {
+            try { es.free(); } catch(e){}
+            return;
+        }
+
+        let iterStartTime = performance.now();
+
+        // 1. Ask for candidates
+        const xs = es.ask_flat(); // Float64Array of size lambda * dim
+
+        // 2. Evaluate candidates
+        const fitnesses = new Float64Array(lambda);
+        for (let i = 0; i < lambda; i++) {
+            const candidate = new Float64Array(dim);
+            for (let d = 0; d < dim; d++) {
+                candidate[d] = xs[i * dim + d];
+            }
+
+            const fit = objectiveFunction(candidate);
+            fitnesses[i] = fit;
+
+            const currentRange = -fit; // approximate actual range without penalty
+            if (currentRange > bestGlobalRange) {
+                bestGlobalRange = currentRange;
+                bestGlobalInputs = new Float64Array(candidate);
+                document.getElementById("val-range").innerText = bestGlobalRange.toFixed(2) + " m";
+            }
+        }
+
+        // 3. Tell CMA-ES results
+        try {
+            es.tell_flat(fitnesses);
+        } catch(e) {
+            console.error("CMA-ES tell error:", e);
+            try { es.free(); } catch(e){}
+            setStatus("LỖI TRONG CMA-ES LOOP", true);
+            isOptimizing = false;
+            return;
+        }
+
+        iteration++;
+
+        // Update progress
+        const p = (iteration / maxIterations) * 100;
+        if(pBar) pBar.style.width = `${p}%`;
+
+        let iterTimeMs = performance.now() - iterStartTime;
+        let remainingIters = maxIterations - iteration;
+        let estRemainingSecs = (iterTimeMs * remainingIters) / 1000;
+        if(estDiv) estDiv.innerText = `Lặp: ${iteration}/${maxIterations} | Ước tính còn lại: ${estRemainingSecs.toFixed(1)}s`;
+
+        const status = es.stop_status();
+
+        if (status.stopped || iteration >= maxIterations) {
+            // Done
+            isOptimizing = false;
+
+            // Apply best found to DOM
+            if (bestGlobalInputs) {
+                for (let i = 0; i < dim; i++) {
+                    let nVal = Math.max(0, Math.min(1, bestGlobalInputs[i]));
+                    const realVal = unlocked[i].min + nVal * (unlocked[i].max - unlocked[i].min);
+                    document.getElementById(unlocked[i].id).value = realVal;
+                }
+            }
+
+            runSimUI(); // Final update
+
+            try { es.free(); } catch(e){}
+
+            if(pBar) pBar.style.width = "100%";
+            if(estDiv) estDiv.innerText = `Hoàn thành sau ${((performance.now() - startTime)/1000).toFixed(1)}s`;
+
+            document.querySelector('button[onclick="optimizeRange()"]').innerHTML = 'CHẠY TỐI ƯU HÓA CMA-ES';
+            document.querySelector('button[onclick="optimizeRange()"]').classList.remove('running');
+            setStatus("ĐÃ TÌM THẤY TẦM XA TỐI ƯU BẰNG CMA-ES", false);
+
+            setTimeout(() => { if(pBar) pBar.style.width="0%"; if(estDiv) estDiv.innerText=""; }, 5000);
+
+        } else {
+            // Continue
+            optimizationTimeout = setTimeout(cmaesLoop, 0); // yield to UI thread
         }
     }
 
-    // Apply best params
-    unlockedInputs.forEach(input => {
-        input.value = bestParams[input.id].toFixed(3);
-    });
-
-    // Final run to update UI
-    runSimUI();
-    alert(`Tối ưu hóa hoàn tất. Tầm xa lớn nhất tìm thấy: ${bestRange.toFixed(2)} m`);
+    cmaesLoop();
 }
-
 // --- CHART.JS INTEGRATION ---
 
 // Custom Sticky Tooltip Plugin
@@ -1830,22 +2037,50 @@ function initChart() {
     Chart.defaults.font.family = "'Roboto Mono', monospace";
 
     chartMain = new Chart(ctx, {
-        type: 'scatter', // Use scatter for flexible X/Y mapping
-        plugins: [stickyTooltipPlugin],
+        type: 'line', // Line charts better support the 'index' interaction mode for crosshairs
         data: {
             datasets: []
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            animation: false, // Turn off animation for fast re-renders
+            animation: false,
             interaction: {
-                mode: 'nearest',
-                intersect: false, // Don't require hovering exactly over the point
+                mode: 'index',
+                intersect: false,
             },
             plugins: {
                 tooltip: {
-                    enabled: false, // Disable native tooltip in favor of custom sticky one
+                    enabled: true,
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(3, 6, 10, 0.9)',
+                    titleColor: '#39ff14',
+                    bodyColor: '#e0e6ed',
+                    borderColor: '#1e2d3d',
+                    borderWidth: 1,
+                    callbacks: {
+                        title: function(context) {
+                            let title = context[0].dataset.labelX || 'Trục X';
+                            return title + ': ' + context[0].parsed.x.toFixed(2);
+                        },
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) { label += ': '; }
+                            label += context.parsed.y.toFixed(2);
+                            return label;
+                        },
+                        footer: function(context) {
+                            // Add easter eggs on hover if data is available
+                            if(context.length > 0 && window.lastDataArrays) {
+                                const index = context[0].dataIndex;
+                                if (index === 0) return "Trạng thái: Chưa phóng";
+                                if (index === window.lastDataArrays.t.length - 1) return "Trạng thái: Landing! TGFuZGluZyE=";
+                                if (window.lastDataArrays.y[index] === Math.max(...window.lastDataArrays.y)) return "Trạng thái: Viễn điểm";
+                            }
+                            return null;
+                        }
+                    }
                 },
                 zoom: {
                     pan: {
@@ -1887,11 +2122,10 @@ function initChart() {
     });
 }
 
+window.resetZoom = resetZoom;
 function resetZoom() {
     if (chartMain) {
         chartMain.resetZoom();
-        pinnedTooltip = null; // Clear pinned tooltip on reset
-        chartMain.draw();
     }
 }
 
@@ -1925,6 +2159,7 @@ function updateChart(dataArrays) {
         }
         datasets.push({
             label: axisLabels[y1Key],
+            labelX: axisLabels[xKey] || xKey,
             data: d1,
             borderColor: getComputedStyle(document.documentElement).getPropertyValue('--accent-1').trim() || '#0000ff', // Adaptive
             backgroundColor: 'transparent',
@@ -1946,6 +2181,7 @@ function updateChart(dataArrays) {
         }
         datasets.push({
             label: axisLabels[y2Key],
+            labelX: axisLabels[xKey] || xKey,
             data: d2,
             borderColor: getComputedStyle(document.documentElement).getPropertyValue('--accent-2').trim() || '#ff0000', // Adaptive
             backgroundColor: 'transparent',
@@ -1961,9 +2197,6 @@ function updateChart(dataArrays) {
     } else {
         chartMain.options.scales.y2.display = false;
     }
-
-    // Unpin tooltip if axes changed
-    pinnedTooltip = null;
 
     chartMain.data.datasets = datasets;
     chartMain.update();
