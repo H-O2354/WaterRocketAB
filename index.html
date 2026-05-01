@@ -7,29 +7,48 @@
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
 
+
 :root {
-    --bg-dark: #03060a;
-    --bg-panel: #0a1018;
-    --bg-input: #121a24;
-    --text-main: #e0e6ed;
-    --text-muted: #8b9bb4;
-    --accent-cyan: #00f0ff;
-    --accent-green: #39ff14;
-    --accent-red: #ff2a2a;
-    --accent-orange: #ff9d00;
-    --border-color: #1e2d3d;
+    /* System theme - defaults to light unless dark is preferred */
+    --bg-main: #ffffff;
+    --bg-panel: #f5f5f5;
+    --bg-input: #ffffff;
+    --text-main: #000000;
+    --text-muted: #555555;
+    --accent: #000000;
+    --border-color: #cccccc;
+    --error-color: #000000;
+    --error-bg: #e0e0e0;
+    --chart-grid: #dddddd;
     --font-mono: 'Roboto Mono', monospace;
 }
+
+[data-theme="dark"] {
+    --bg-main: #000000;
+    --bg-panel: #111111;
+    --bg-input: #000000;
+    --text-main: #ffffff;
+    --text-muted: #aaaaaa;
+    --accent: #ffffff;
+    --border-color: #444444;
+    --error-color: #ffffff;
+    --error-bg: #333333;
+    --chart-grid: #333333;
+}
+
+
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
+
 
 body {
     font-family: var(--font-mono);
-    background-color: var(--bg-dark);
+    background-color: var(--bg-main);
     color: var(--text-main);
     display: flex;
     flex-direction: column;
@@ -44,20 +63,20 @@ header {
     align-items: center;
     padding: 10px 20px;
     background-color: var(--bg-panel);
-    border-bottom: 2px solid var(--accent-cyan);
+    border-bottom: 2px solid var(--accent);
 }
 
 header h1 {
     font-size: 1.5rem;
-    color: var(--accent-cyan);
-    text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+    color: var(--accent);
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
     margin: 0;
 }
 
 .header-controls button {
     background: transparent;
-    color: var(--accent-cyan);
-    border: 1px solid var(--accent-cyan);
+    color: var(--accent);
+    border: 1px solid var(--accent);
     padding: 8px 15px;
     margin-left: 10px;
     font-family: var(--font-mono);
@@ -67,8 +86,8 @@ header h1 {
 }
 
 .header-controls button:hover {
-    background: var(--accent-cyan);
-    color: var(--bg-dark);
+    background: var(--accent);
+    color: var(--bg-main);
 }
 
 /* Main Layout */
@@ -96,7 +115,7 @@ header h1 {
     width: 8px;
 }
 ::-webkit-scrollbar-track {
-    background: var(--bg-dark);
+    background: var(--bg-main);
 }
 ::-webkit-scrollbar-thumb {
     background: var(--border-color);
@@ -113,7 +132,7 @@ fieldset {
 }
 
 legend {
-    color: var(--accent-orange);
+    color: var(--accent);
     font-size: 0.9rem;
     font-weight: bold;
     padding: 0 5px;
@@ -125,19 +144,19 @@ legend {
     margin-bottom: 10px;
     background-color: var(--bg-input);
     padding: 10px;
-    border: 1px solid var(--accent-cyan);
+    border: 1px solid var(--accent);
 }
 
 .mode-switch label {
-    color: var(--accent-cyan);
+    color: var(--accent);
     font-weight: bold;
     margin-bottom: 5px;
 }
 
 .mode-switch select {
-    background-color: var(--bg-dark);
+    background-color: var(--bg-main);
     color: var(--text-main);
-    border: 1px solid var(--accent-cyan);
+    border: 1px solid var(--accent);
     padding: 5px;
     font-family: var(--font-mono);
     font-weight: bold;
@@ -184,7 +203,7 @@ legend {
 
 .input-row input:focus, .input-group select:focus {
     outline: none;
-    border-color: var(--accent-cyan);
+    border-color: var(--accent);
 }
 
 .input-group select {
@@ -202,13 +221,13 @@ legend {
 }
 
 .opt-lock.unlocked {
-    color: var(--accent-green);
+    color: var(--accent);
 }
 
 .action-btn {
-    background-color: #1a1a1a;
-    color: var(--accent-green);
-    border: 1px solid var(--accent-green);
+    background-color: var(--bg-input);
+    color: var(--accent);
+    border: 1px solid var(--accent);
     padding: 12px 20px;
     font-family: var(--font-mono);
     font-weight: bold;
@@ -218,8 +237,8 @@ legend {
 }
 
 .action-btn:hover {
-    background-color: var(--accent-green);
-    color: var(--bg-dark);
+    background-color: var(--accent);
+    color: var(--bg-main);
 }
 
 /* Right Pane: Telemetry */
@@ -228,14 +247,14 @@ legend {
     display: flex;
     flex-direction: column;
     padding: 15px;
-    background-color: var(--bg-dark);
+    background-color: var(--bg-main);
     overflow-y: auto;
 }
 
 .status-banner {
-    background-color: rgba(57, 255, 20, 0.1);
-    color: var(--accent-green);
-    border: 1px solid var(--accent-green);
+    background-color: var(--bg-panel);
+    color: var(--accent);
+    border: 1px solid var(--accent);
     padding: 15px;
     text-align: center;
     font-size: 1.2rem;
@@ -245,9 +264,9 @@ legend {
 }
 
 .status-banner.error {
-    background-color: rgba(255, 42, 42, 0.1);
-    color: var(--accent-red);
-    border-color: var(--accent-red);
+    background-color: var(--error-bg);
+    color: var(--error-color);
+    border-color: var(--error-color);
 }
 
 .stats-grid {
@@ -272,7 +291,7 @@ legend {
 }
 
 .stat-value {
-    color: var(--accent-cyan);
+    color: var(--accent);
     font-size: 1.5rem;
     font-weight: bold;
 }
@@ -339,17 +358,17 @@ legend {
     background-color: var(--bg-panel);
     margin: 5% auto;
     padding: 20px;
-    border: 1px solid var(--accent-cyan);
+    border: 1px solid var(--accent);
     width: 80%;
     max-width: 800px;
     color: var(--text-main);
-    box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     max-height: 80vh;
     overflow-y: auto;
 }
 
 .close-modal {
-    color: var(--accent-red);
+    color: var(--error-color);
     float: right;
     font-size: 28px;
     font-weight: bold;
@@ -357,7 +376,7 @@ legend {
 }
 
 .close-modal:hover {
-    color: #fff;
+    color: var(--text-main);
 }
 
 .eq-section {
@@ -367,15 +386,15 @@ legend {
 }
 
 .eq-section h3 {
-    color: var(--accent-orange);
+    color: var(--accent);
     margin-bottom: 10px;
 }
 
 /* Custom Chart Tooltip styles created dynamically by JS plugin */
 .custom-chart-tooltip {
     background: rgba(10, 16, 24, 0.9);
-    border: 1px solid var(--accent-cyan);
-    color: white;
+    border: 1px solid var(--accent);
+    color: var(--text-main);
     padding: 10px;
     border-radius: 4px;
     pointer-events: none;
@@ -389,7 +408,7 @@ legend {
 }
 .custom-chart-tooltip table { margin: 0; }
 .custom-chart-tooltip tr { background-color: transparent !important; }
-.custom-chart-tooltip th { color: var(--accent-orange); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; text-align: left; }
+.custom-chart-tooltip th { color: var(--accent); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; text-align: left; }
 .custom-chart-tooltip td { padding-top: 4px; }
 
 
@@ -401,7 +420,7 @@ legend {
 }
 .tree ul {
     margin-left: 20px;
-    border-left: 1px dashed var(--accent-cyan);
+    border-left: 1px dashed var(--accent);
 }
 .tree li {
     margin: 10px 0;
@@ -414,19 +433,19 @@ legend {
     top: 10px;
     left: 0;
     width: 10px;
-    border-top: 1px dashed var(--accent-cyan);
+    border-top: 1px dashed var(--accent);
 }
 .tree li.tree-head::before, .tree li.tree-head {
     border: none;
     padding: 0;
     margin-left: 0;
     font-size: 1.2rem;
-    color: var(--accent-orange);
+    color: var(--accent);
     font-weight: bold;
 }
 .tree-title {
     font-weight: bold;
-    color: var(--accent-green);
+    color: var(--accent);
     display: inline-block;
     margin-bottom: 5px;
 }
@@ -463,14 +482,14 @@ button:hover {
 }
 .stat-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 240, 255, 0.2);
-    border-color: var(--accent-cyan);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border-color: var(--accent);
 }
 input, select {
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 input:focus, select:focus {
-    box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
 }
 .modal-content {
     animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -506,11 +525,22 @@ fieldset {
 <body>
 
     <header>
-        <h1>WATER ROCKET TELEMETRY DASHBOARD</h1>
+        <h1><span data-i18n="TITLE">WATER ROCKET TELEMETRY DASHBOARD</span></h1>
+
         <div class="header-controls">
-            <button id="btn-docs" onclick="document.getElementById('docs-modal').style.display='block'">TÀI LIỆU VẬT LÝ & TOÁN HỌC</button>
-            <button id="btn-arch" onclick="document.getElementById('arch-modal').style.display='block'">KIẾN TRÚC HỆ THỐNG</button>
-            <button id="btn-force-run" onclick="runSimUI()">FORCE RECALCULATE</button>
+            <select id="sel-lang" onchange="setLanguage(this.value)" style="margin-right:10px; padding:5px; background:var(--bg-input); color:var(--text-main); border:1px solid var(--accent); font-family:var(--font-mono);">
+                <option value="vi">🇻🇳 Tiếng Việt</option>
+                <option value="en">🇬🇧 English</option>
+            </select>
+            <select id="sel-theme" onchange="setTheme(this.value)" style="margin-right:10px; padding:5px; background:var(--bg-input); color:var(--text-main); border:1px solid var(--accent); font-family:var(--font-mono);">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="system">System</option>
+            </select>
+
+            <button id="btn-docs" onclick="document.getElementById('docs-modal').style.display='block'"><span data-i18n="BTN_DOCS">TÀI LIỆU VẬT LÝ & TOÁN HỌC</span></button>
+            <button id="btn-arch" onclick="document.getElementById('arch-modal').style.display='block'"><span data-i18n="BTN_ARCH">KIẾN TRÚC HỆ THỐNG</span></button>
+            <button id="btn-force-run" onclick="runSimUI()"><span data-i18n="BTN_RECALC">FORCE RECALCULATE</span></button>
         </div>
     </header>
 
@@ -519,96 +549,91 @@ fieldset {
         <!-- LEFT PANE: CONTROLS -->
         <aside id="controls">
             <div class="mode-switch">
-                <label for="in-mode">ENGINE MODE</label>
+                <label for="in-mode"><span data-i18n="L_MODE">ENGINE MODE</span></label>
                 <select id="in-mode" onchange="toggleMode(); runSimUI();">
-                    <option value="AIR">AIR PUMP MODE</option>
-                    <option value="CHEM">CHEMICAL REACTION</option>
+                    <option value="AIR"><span data-i18n="MODE_AIR">AIR PUMP MODE</span></option>
+                    <option value="CHEM"><span data-i18n="MODE_CHEM">CHEMICAL REACTION</span></option>
                 </select>
             </div>
 
             <fieldset id="fs-geometry">
-                <legend>Geometry & Mass</legend>
+                <legend><span data-i18n="L_GEO">Geometry & Mass</span></legend>
                 <div class="input-group">
-                    <label>Bottle Volume (L) <span class="help" title="Total internal volume of the pressure vessel.">?</span></label>
+                    <label><span data-i18n="L_VBOT">Bottle Volume (L)</span> <span class="help" title="Total internal volume of the pressure vessel.">?</span></label>
                     <div class="input-row">
-                        <input type="number" id="in-v-bottle" value="1.5" step="0.1" onchange="runSimUI()">
+                        <input type="number" id="in-v-bottle" value="0.5" step="0.1" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Total Length (mm) <span class="help" title="Total length of the rocket from nose to nozzle.">?</span></label>
+                    <label><span data-i18n="L_LENG">Total Length (mm)</span> <span class="help" title="Total length of the rocket from nose to nozzle.">?</span></label>
                     <div class="input-row">
-                        <input type="number" id="in-l-rocket" value="500" onchange="runSimUI()">
+                        <input type="number" id="in-l-rocket" value="60" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Body Diameter (mm) <span class="help" title="Outer diameter of the main body tube.">?</span></label>
+                    <label><span data-i18n="L_DIA">Body Diameter (mm)</span> <span class="help" title="Outer diameter of the main body tube.">?</span></label>
                     <div class="input-row">
-                        <input type="number" id="in-d-body" value="90" onchange="runSimUI()">
+                        <input type="number" id="in-d-body" value="65" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Empty Mass (kg) <span class="help" title="Mass of the bottle and fins without water/ballast.">?</span></label>
+                    <label><span data-i18n="L_MEMP">Empty Mass (kg)</span> <span class="help" title="Mass of the bottle and fins without water/ballast.">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-m-empty" value="0.1" step="0.01" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Nose Ballast (kg) <span class="help" title="Mass added to the nose cone for stability.">?</span></label>
+                    <label><span data-i18n="L_MBAL">Nose Ballast (kg)</span> <span class="help" title="Mass added to the nose cone for stability.">?</span></label>
                     <div class="input-row">
-                        <input type="number" id="in-m-ballast" value="0.05" step="0.01" onchange="runSimUI()">
+                        <input type="number" id="in-m-ballast" value="0.005" step="0.01" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Fin Root Chord (mm) <span class="help" title="Chiều dài chân cánh">?</span></label>
+                    <label><span data-i18n="L_FROOT">Fin Root Chord (mm)</span> <span class="help" title="Chiều dài chân cánh">?</span></label>
                     <div class="input-row">
-                        <input type="number" id="in-fin-root" value="100" onchange="runSimUI()">
+                        <input type="number" id="in-fin-root" value="25" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Fin Tip Chord (mm) <span class="help" title="Chiều dài đỉnh cánh">?</span></label>
+                    <label><span data-i18n="L_FTIP">Fin Tip Chord (mm)</span> <span class="help" title="Chiều dài đỉnh cánh">?</span></label>
                     <div class="input-row">
-                        <input type="number" id="in-fin-tip" value="50" onchange="runSimUI()">
+                        <input type="number" id="in-fin-tip" value="25" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Fin Span (mm) <span class="help" title="Sải cánh">?</span></label>
+                    <label><span data-i18n="L_FSPAN">Fin Span (mm)</span> <span class="help" title="Sải cánh">?</span></label>
                     <div class="input-row">
-                        <input type="number" id="in-fin-span" value="60" onchange="runSimUI()">
+                        <input type="number" id="in-fin-span" value="25" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
-                </div>
-
-                <div class="input-group" id="card-friction" style="display: none; background: rgba(255, 157, 0, 0.1); padding: 5px; border-left: 3px solid var(--accent-orange);">
-                    <label style="color: var(--accent-orange); font-weight: bold; margin-bottom:0;">-> Cork Friction REQD <span class="help" title="Ma sát nút bần yêu cầu">?</span></label>
-                    <div id="val-cork-friction" style="color: var(--accent-cyan); font-weight: bold; font-size: 1.1rem; text-align:right;">0.00 kgf</div>
                 </div>
             </fieldset>
 
             <fieldset id="fs-air">
-                <legend>Energy & Propellant (AIR)</legend>
+                <legend><span data-i18n="L_ENERGY_AIR">Energy & Propellant (AIR)</span></legend>
                 <div class="input-group">
-                    <label>Water Ratio (%) <span class="help" title="Percentage of bottle volume filled with water.">?</span></label>
+                    <label><span data-i18n="L_WRATIO">Water Ratio (%)</span> <span class="help" title="Percentage of bottle volume filled with water.">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-water-ratio" value="33" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Initial Pressure (PSI) <span class="help" title="Gauge pressure inside the bottle before launch.">?</span></label>
+                    <label><span data-i18n="L_PUMP">Initial Pressure (PSI)</span> <span class="help" title="Gauge pressure inside the bottle before launch.">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-pressure" value="60" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Burst Limit (PSI) <span class="help" title="Maximum safe pressure before structural failure.">?</span></label>
+                    <label><span data-i18n="L_BURST">Burst Limit (PSI)</span> <span class="help" title="Maximum safe pressure before structural failure.">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-burst" value="120" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
@@ -617,140 +642,146 @@ fieldset {
             </fieldset>
 
             <fieldset id="fs-chem" style="display: none;">
-                <legend>Chemical Reaction (CHEM)</legend>
+                <legend><span data-i18n="L_ENERGY_CHEM">Chemical Reaction (CHEM)</span></legend>
                 <div class="input-group">
-                    <label>Carbonate Type</label>
+                    <label><span data-i18n="L_STYPE">Carbonate Type</span></label>
                     <select id="in-salt-type" onchange="runSimUI()">
-                        <option value="84">Baking Soda (84 g/mol)</option>
-                        <option value="106">Washing Soda (106 g/mol)</option>
+                        <option value="84"><span data-i18n="OPT_BAKING">Baking Soda (84 g/mol)</span></option>
+                        <option value="106"><span data-i18n="OPT_WASHING">Washing Soda (106 g/mol)</span></option>
                     </select>
                 </div>
                 <div class="input-group">
-                    <label>Mass of Salt (g) <span class="help" title="Khối lượng muối">?</span></label>
+                    <label><span data-i18n="L_MSALT">Mass of Salt (g)</span> <span class="help" title="Khối lượng muối">?</span></label>
                     <div class="input-row">
-                        <input type="number" id="in-mass-salt" value="50" onchange="runSimUI()">
+                        <input type="number" id="in-mass-salt" value="7.6" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Volume of Vinegar (ml) <span class="help" title="Thể tích giấm">?</span></label>
+                    <label><span data-i18n="L_VVINEGAR">Volume of Vinegar (ml)</span> <span class="help" title="Thể tích giấm">?</span></label>
                     <div class="input-row">
-                        <input type="number" id="in-vol-vinegar" value="500" onchange="runSimUI()">
+                        <input type="number" id="in-vol-vinegar" value="109" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Acid Conc. (% m/v) <span class="help" title="Nồng độ Acid">?</span></label>
+                    <label><span data-i18n="L_ACID">Acid Conc. (% m/v)</span> <span class="help" title="Nồng độ Acid">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-acid-conc" value="5" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Gas Yield Eff. (%) <span class="help" title="Hiệu suất sinh khí">?</span></label>
+                    <label><span data-i18n="L_GEFF">Gas Yield Eff. (%)</span> <span class="help" title="Hiệu suất sinh khí">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-gas-eff" value="85" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Pop-off Pressure (PSI) <span class="help" title="Áp suất bung nút">?</span></label>
+                    <label><span data-i18n="L_POPOFF">Pop-off Pressure (PSI)</span> <span class="help" title="Áp suất bung nút">?</span></label>
                     <div class="input-row">
-                        <input type="number" id="in-popoff" value="80" onchange="runSimUI()">
+                        <input type="number" id="in-popoff" value="70" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
             </fieldset>
 
             <fieldset id="fs-thrust">
-                <legend>Thrust System</legend>
+                <legend><span data-i18n="L_THRUST_SYS">Thrust System</span></legend>
                 <div class="input-group">
-                    <label>Nozzle Diameter (mm) <span class="help" title="Đường kính vòi phun">?</span></label>
+                    <label><span data-i18n="L_NOZZLE">Nozzle Diameter (mm)</span> <span class="help" title="Đường kính vòi phun">?</span></label>
                     <div class="input-row">
-                        <input type="number" id="in-d-nozzle" value="22" onchange="runSimUI()">
+                        <input type="number" id="in-d-nozzle" value="21" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Launch Tube Length (m) <span class="help" title="Chiều dài ống dẫn hướng">?</span></label>
+                    <label><span data-i18n="L_LTUBE">Launch Tube Length (m)</span> <span class="help" title="Chiều dài ống dẫn hướng">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-l-tube" value="0.5" step="0.1" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Launch Tube OD (mm) <span class="help" title="Đường kính ngoài ống dẫn">?</span></label>
+                    <label><span data-i18n="L_DTUBE">Launch Tube OD (mm)</span> <span class="help" title="Đường kính ngoài ống dẫn">?</span></label>
                     <div class="input-row">
-                        <input type="number" id="in-d-tube" value="20" onchange="runSimUI()">
+                        <input type="number" id="in-d-tube" value="21" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
+                </div>
+
+
+                <div class="input-group" id="card-friction" style="display: none; background: rgba(255, 157, 0, 0.1); padding: 5px; border-left: 3px solid var(--accent);">
+                    <label style="color: var(--accent); font-weight: bold; margin-bottom:0;"><span data-i18n="L_CORK">-> Cork Friction REQD</span> <span class="help" title="Ma sát nút bần yêu cầu">?</span></label>
+                    <div id="val-cork-friction" style="color: var(--accent); font-weight: bold; font-size: 1.1rem; text-align:right;">0.00 kgf</div>
                 </div>
             </fieldset>
 
             <fieldset id="fs-env">
-                <legend>Trajectory & Environment</legend>
+                <legend><span data-i18n="L_TRAJ">Trajectory & Environment</span></legend>
                 <div class="input-group">
-                    <label>Launch Angle (Deg) <span class="help" title="Angle from horizontal. 90 is straight up.">?</span></label>
+                    <label><span data-i18n="L_ANGLE">Launch Angle (Deg)</span> <span class="help" title="Angle from horizontal. 90 is straight up.">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-angle" value="45" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Drag Coefficient (Cd) <span class="help" title="Hệ số cản không khí">?</span></label>
+                    <label><span data-i18n="L_CD">Drag Coefficient (Cd)</span> <span class="help" title="Hệ số cản không khí">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-cd" value="0.45" step="0.01" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Air Temperature (C) <span class="help" title="Nhiệt độ môi trường">?</span></label>
+                    <label><span data-i18n="L_TEMP">Air Temperature (C)</span> <span class="help" title="Nhiệt độ môi trường">?</span></label>
                     <div class="input-row">
-                        <input type="number" id="in-temp" value="25" onchange="runSimUI()">
+                        <input type="number" id="in-temp" value="27" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Air Density (kg/m³) <span class="help" title="Khối lượng riêng không khí">?</span></label>
+                    <label><span data-i18n="L_DENS">Air Density (kg/m³)</span> <span class="help" title="Khối lượng riêng không khí">?</span></label>
                     <select id="in-env" onchange="runSimUI()">
-                        <option value="1.225">1.225 (Sea Level)</option>
-                        <option value="1.056">1.056 (High Altitude)</option>
+                        <option value="1.225"><span data-i18n="OPT_SEA">1.225 (Sea Level)</span></option>
+                        <option value="1.056"><span data-i18n="OPT_HIGH">1.056 (High Altitude)</span></option>
                     </select>
                 </div>
             </fieldset>
 
             <div style="padding: 20px 0; text-align: center;">
-                <button class="action-btn" onclick="optimizeRange()">RUN CMA-ES OPTIMIZER</button>
+                <button class="action-btn" onclick="optimizeRange()"><span data-i18n="BTN_OPT">RUN CMA-ES OPTIMIZER</span></button>
             </div>
         </aside>
 
         <!-- RIGHT PANE: TELEMETRY -->
         <main id="telemetry">
-            <div id="sys-status" class="status-banner">SYSTEM STATUS: NOMINAL</div>
+            <div id="sys-status" class="status-banner"><span data-i18n="STAT_NOMINAL">SYSTEM STATUS: NOMINAL</span></div>
 
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-label">Actual Range</div>
+                    <div class="stat-label"><span data-i18n="C_ACTRANGE">Actual Range</span></div>
                     <div class="stat-value" id="val-range">0.00 m</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Ideal Range (Vacuum)</div>
+                    <div class="stat-label"><span data-i18n="C_IDEAL">Ideal Range (Vacuum)</span></div>
                     <div class="stat-value" id="val-ideal-range">0.00 m</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Apogee (Max Alt)</div>
+                    <div class="stat-label"><span data-i18n="C_APOGEE">Apogee (Max Alt)</span></div>
                     <div class="stat-value" id="val-apogee">0.00 m</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Max Velocity</div>
+                    <div class="stat-label"><span data-i18n="C_MAXV">Max Velocity</span></div>
                     <div class="stat-value" id="val-max-v">0.00 m/s</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Flight Time</div>
+                    <div class="stat-label"><span data-i18n="C_FLIGHT">Flight Time</span></div>
                     <div class="stat-value" id="val-flight-time">0.00 s</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Burn Time</div>
+                    <div class="stat-label"><span data-i18n="C_BURN">Burn Time</span></div>
                     <div class="stat-value" id="val-burn-time">0.00 s</div>
                 </div>
 
@@ -758,14 +789,14 @@ fieldset {
 
             <div class="chart-controls">
                 <div>
-                    <label>X-Axis:</label>
+                    <label><span data-i18n="SEL_X">X-Axis:</span></label>
                     <select id="sel-x-axis" onchange="runSimUI()">
                         <option value="t">Time (s)</option>
                         <option value="x">Range (m)</option>
                     </select>
                 </div>
                 <div>
-                    <label>Y1-Axis (Primary):</label>
+                    <label><span data-i18n="SEL_Y1">Y1-Axis (Primary):</span></label>
                     <select id="sel-y1-axis" onchange="runSimUI()">
                         <option value="y">Altitude (m)</option>
                         <option value="v">Velocity (m/s)</option>
@@ -783,7 +814,7 @@ fieldset {
                     </select>
                 </div>
                 <div>
-                    <label>Y2-Axis (Secondary):</label>
+                    <label><span data-i18n="SEL_Y2">Y2-Axis (Secondary):</span></label>
                     <select id="sel-y2-axis" onchange="runSimUI()">
                         <option value="none">None</option>
                         <option value="y">Altitude (m)</option>
@@ -801,7 +832,7 @@ fieldset {
                         <option value="sm">Static Margin (Calibers)</option>
                     </select>
                 </div>
-                <button onclick="resetZoom()">Reset Zoom</button>
+                <button onclick="resetZoom()"><span data-i18n="BTN_ZOOM">Reset Zoom</span></button>
             </div>
 
             <div class="chart-container">
@@ -1379,6 +1410,165 @@ function run_simulation(input) {
 let chartMain = null;
 
 // --- INITIALIZATION ---
+
+
+// --- I18N LOGIC ---
+const i18n = {
+    vi: {
+        TITLE: 'BẢNG ĐIỀU KHIỂN ĐO LƯỜNG TÊN LỬA NƯỚC',
+        BTN_DOCS: 'TÀI LIỆU VẬT LÝ & TOÁN HỌC',
+        BTN_ARCH: 'KIẾN TRÚC HỆ THỐNG',
+        BTN_RECALC: 'BẮT BUỘC TÍNH TOÁN LẠI',
+        L_MODE: 'CHẾ ĐỘ ĐỘNG CƠ',
+        MODE_AIR: 'CHẾ ĐỘ BƠM KHÍ',
+        MODE_CHEM: 'PHẢN ỨNG HÓA HỌC',
+        L_GEO: 'Hình học & Khối lượng',
+        L_VBOT: 'Thể tích chai (L)',
+        L_LENG: 'Chiều dài tổng thể (mm)',
+        L_DIA: 'Đường kính thân (mm)',
+        L_MEMP: 'Khối lượng rỗng (kg)',
+        L_MBAL: 'Khối lượng tạ mũi (kg)',
+        L_FROOT: 'Chiều dài chân cánh (mm)',
+        L_FTIP: 'Chiều dài đỉnh cánh (mm)',
+        L_FSPAN: 'Sải cánh (mm)',
+        L_ENERGY_AIR: 'Năng lượng & Nhiên liệu (AIR)',
+        L_WRATIO: 'Tỷ lệ đổ nước (%)',
+        L_PUMP: 'Áp suất bơm ban đầu (PSI)',
+        L_BURST: 'Áp suất nổ giới hạn (PSI)',
+        L_ENERGY_CHEM: 'Phản ứng Hóa học (CHEM)',
+        L_STYPE: 'Loại muối (g/mol)',
+        OPT_BAKING: 'Baking Soda (84 g/mol)',
+        OPT_WASHING: 'Washing Soda (106 g/mol)',
+        L_MSALT: 'Khối lượng muối (g)',
+        L_VVINEGAR: 'Thể tích giấm (ml)',
+        L_ACID: 'Nồng độ Acid (% m/v)',
+        L_GEFF: 'Hiệu suất sinh khí (%)',
+        L_POPOFF: 'Áp suất bung nút (PSI)',
+        L_THRUST_SYS: 'Hệ thống Lực đẩy',
+        L_CORK: '-> Yêu cầu Ma sát Nút bần',
+        L_NOZZLE: 'Đường kính Vòi phun (mm)',
+        L_LTUBE: 'Chiều dài ống phóng (m)',
+        L_DTUBE: 'Đường kính ống phóng (mm)',
+        L_TRAJ: 'Quỹ đạo & Môi trường',
+        L_ANGLE: 'Góc phóng (Độ)',
+        L_CD: 'Hệ số cản không khí (Cd)',
+        L_TEMP: 'Nhiệt độ không khí (C)',
+        L_DENS: 'Mật độ không khí (kg/m³)',
+        OPT_SEA: '1.225 (Ngang mực nước biển)',
+        OPT_HIGH: '1.056 (Trên vùng núi cao)',
+        BTN_OPT: 'CHẠY TỐI ƯU HÓA CMA-ES',
+        STAT_NOMINAL: 'TRẠNG THÁI HỆ THỐNG: BÌNH THƯỜNG',
+        C_ACTRANGE: 'Tầm xa Thực tế',
+        C_IDEAL: 'Tầm xa Lý thuyết',
+        C_APOGEE: 'Đỉnh quỹ đạo (Cao tối đa)',
+        C_MAXV: 'Vận tốc tối đa',
+        C_FLIGHT: 'Thời gian bay',
+        C_BURN: 'Thời gian đốt',
+        SEL_X: 'Trục X:',
+        SEL_Y1: 'Trục Y1 (Chính):',
+        SEL_Y2: 'Trục Y2 (Phụ):',
+        BTN_ZOOM: 'Đặt lại Zoom'
+    },
+    en: {
+        TITLE: 'WATER ROCKET TELEMETRY DASHBOARD',
+        BTN_DOCS: 'PHYSICS & MATH DOCS',
+        BTN_ARCH: 'SYSTEM ARCHITECTURE',
+        BTN_RECALC: 'FORCE RECALCULATE',
+        L_MODE: 'ENGINE MODE',
+        MODE_AIR: 'AIR PUMP MODE',
+        MODE_CHEM: 'CHEMICAL REACTION',
+        L_GEO: 'Geometry & Mass',
+        L_VBOT: 'Bottle Volume (L)',
+        L_LENG: 'Total Length (mm)',
+        L_DIA: 'Body Diameter (mm)',
+        L_MEMP: 'Empty Mass (kg)',
+        L_MBAL: 'Nose Ballast (kg)',
+        L_FROOT: 'Fin Root Chord (mm)',
+        L_FTIP: 'Fin Tip Chord (mm)',
+        L_FSPAN: 'Fin Span (mm)',
+        L_ENERGY_AIR: 'Energy & Propellant (AIR)',
+        L_WRATIO: 'Water Ratio (%)',
+        L_PUMP: 'Initial Pressure (PSI)',
+        L_BURST: 'Burst Limit (PSI)',
+        L_ENERGY_CHEM: 'Chemical Reaction (CHEM)',
+        L_STYPE: 'Carbonate Type',
+        OPT_BAKING: 'Baking Soda (84 g/mol)',
+        OPT_WASHING: 'Washing Soda (106 g/mol)',
+        L_MSALT: 'Mass of Salt (g)',
+        L_VVINEGAR: 'Volume of Vinegar (ml)',
+        L_ACID: 'Acid Conc. (% m/v)',
+        L_GEFF: 'Gas Yield Eff. (%)',
+        L_POPOFF: 'Pop-off Pressure (PSI)',
+        L_THRUST_SYS: 'Thrust System',
+        L_CORK: '-> Cork Friction REQD',
+        L_NOZZLE: 'Nozzle Diameter (mm)',
+        L_LTUBE: 'Launch Tube Length (m)',
+        L_DTUBE: 'Launch Tube OD (mm)',
+        L_TRAJ: 'Trajectory & Environment',
+        L_ANGLE: 'Launch Angle (Deg)',
+        L_CD: 'Drag Coefficient (Cd)',
+        L_TEMP: 'Air Temperature (C)',
+        L_DENS: 'Air Density (kg/m³)',
+        OPT_SEA: '1.225 (Sea Level)',
+        OPT_HIGH: '1.056 (High Altitude)',
+        BTN_OPT: 'RUN CMA-ES OPTIMIZER',
+        STAT_NOMINAL: 'SYSTEM STATUS: NOMINAL',
+        C_ACTRANGE: 'Actual Range',
+        C_IDEAL: 'Ideal Range (Vacuum)',
+        C_APOGEE: 'Apogee (Max Alt)',
+        C_MAXV: 'Max Velocity',
+        C_FLIGHT: 'Flight Time',
+        C_BURN: 'Burn Time',
+        SEL_X: 'X-Axis:',
+        SEL_Y1: 'Y1-Axis (Primary):',
+        SEL_Y2: 'Y2-Axis (Secondary):',
+        BTN_ZOOM: 'Reset Zoom'
+    }
+};
+
+let currentLang = 'vi';
+
+function setLanguage(lang) {
+    currentLang = lang;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (i18n[lang][key]) {
+            el.innerText = i18n[lang][key];
+        }
+    });
+    if(window.chartMain) {
+        updateChart(window.lastDataArrays);
+    }
+}
+
+// --- THEME LOGIC ---
+function setTheme(theme) {
+    if (theme === 'system') {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+        }
+    } else {
+        document.documentElement.setAttribute('data-theme', theme);
+    }
+    if (chartMain) {
+        initChart(); // Re-initialize chart to pick up new CSS variables
+        runSimUI(); // Redraw
+    }
+}
+// Listen for system theme changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    if (document.getElementById('sel-theme').value === 'system') {
+        setTheme('system');
+    }
+});
+// Set default on load
+document.addEventListener("DOMContentLoaded", () => {
+    setTheme('light');
+    setLanguage('vi'); // default to VI
+});
+
 document.addEventListener("DOMContentLoaded", () => {
     initChart();
     toggleMode(); // Setup initial UI state
@@ -1546,7 +1736,7 @@ function runSimUI() {
         const arrays = result;
 
         // 6. Update Chart
-        updateChart(arrays);
+        window.lastDataArrays = arrays; updateChart(arrays);
 
         // Important: free up memory from WASM
 
@@ -1616,6 +1806,7 @@ const stickyTooltipPlugin = {
 
         if (!tooltipEl) return;
 
+
         // Retrieve the data for the pinned point
         const { datasetIndex, index } = pinnedTooltip;
         const dataset = chart.data.datasets[datasetIndex];
@@ -1623,14 +1814,28 @@ const stickyTooltipPlugin = {
         const color = dataset.borderColor;
         const label = dataset.label;
 
+        // Also get global time, range, alt, vel for this index from window.lastDataArrays
+        let globalInfo = "";
+        if (window.lastDataArrays) {
+            globalInfo = `
+            <tr><td>Thời gian (s): ${window.lastDataArrays.t[index].toFixed(3)}</td></tr>
+            <tr><td>Tầm xa (m): ${window.lastDataArrays.x[index].toFixed(3)}</td></tr>
+            <tr><td>Độ cao (m): ${window.lastDataArrays.y[index].toFixed(3)}</td></tr>
+            <tr><td>Vận tốc (m/s): ${window.lastDataArrays.v[index].toFixed(3)}</td></tr>
+            <hr>
+            `;
+        }
+
         // Format tooltip content
         const tableRoot = tooltipEl.querySelector('table');
-        let innerHtml = `<thead><tr><th>${label}</th></tr></thead><tbody>`;
-        innerHtml += `<tr><td>X: ${dataPoint.x.toFixed(3)}</td></tr>`;
-        innerHtml += `<tr><td>Y: ${dataPoint.y.toFixed(3)}</td></tr>`;
+        let innerHtml = `<thead><tr><th style="color:${color}">${label}</th></tr></thead><tbody>`;
+        innerHtml += globalInfo;
+        innerHtml += `<tr><td>X-Axis: ${dataPoint.x.toFixed(3)}</td></tr>`;
+        innerHtml += `<tr><td>Y-Axis: ${dataPoint.y.toFixed(3)}</td></tr>`;
         innerHtml += `</tbody>`;
 
         tableRoot.innerHTML = innerHtml;
+
 
         // Position tooltip
         const meta = chart.getDatasetMeta(datasetIndex);
@@ -1681,13 +1886,12 @@ function initChart() {
                 },
                 zoom: {
                     pan: {
-                        enabled: true,
-                        mode: 'xy'
+                        enabled: false
                     },
                     zoom: {
                         wheel: { enabled: false },
                         pinch: { enabled: true },
-                        drag: { enabled: true, backgroundColor: 'rgba(0, 240, 255, 0.2)' },
+                        drag: { enabled: true, backgroundColor: 'rgba(0, 0, 0, 0.1)' },
                         mode: 'xy'
                     }
                 },
