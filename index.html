@@ -26,8 +26,8 @@
 }
 
 [data-theme="dark"] {
-    --accent-1: #00f0ff;
-    --accent-2: #39ff14;
+    --accent-1: #0000ff;
+    --accent-2: #ff0000;
     --bg-main: #000000;
     --bg-panel: #111111;
     --bg-input: #000000;
@@ -396,7 +396,9 @@ legend {
 
 /* Custom Chart Tooltip styles created dynamically by JS plugin */
 .custom-chart-tooltip {
-    background: rgba(10, 16, 24, 0.9);
+    background: var(--bg-panel);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
     border: 1px solid var(--accent);
     color: var(--text-main);
     padding: 10px;
@@ -1619,10 +1621,78 @@ function runSimUI() {
     }
 }
 
+// --- SIMPLE RANDOM SEARCH OPTIMIZER (Replacing CMA-ES for JS) ---
 function optimizeRange() {
-    console.log("CMA-ES Optimizer Triggered");
-    alert("CMA-ES Optimizer will run here via WASM, adjusting unlocked inputs to maximize range.");
-    // Engine would read DOM state to find variables without '.unlocked' class, mutate them, run simulations, and update the UI with best parameters.
+    console.log("Optimizer Triggered");
+
+    // Find all unlocked inputs
+    const inputs = document.querySelectorAll('#controls input[type="number"]');
+    const unlockedInputs = [];
+    inputs.forEach(input => {
+        const btn = input.nextElementSibling;
+        if (btn && btn.classList.contains('unlocked')) {
+            unlockedInputs.push(input);
+        }
+    });
+
+    if (unlockedInputs.length === 0) {
+        alert("Vui lòng mở khóa (MỞ) ít nhất một thông số để tối ưu hóa.");
+        return;
+    }
+
+    alert("Đang chạy thuật toán tối ưu hóa...");
+
+    // Simple random search since full CMA-ES in JS is complex and might freeze UI
+    // We will do 500 iterations of random mutations around current values
+    let bestRange = -1;
+    let bestParams = {};
+
+    // Save original state
+    const originalParams = {};
+    unlockedInputs.forEach(input => {
+        originalParams[input.id] = parseFloat(input.value);
+        bestParams[input.id] = parseFloat(input.value);
+    });
+
+    // Run baseline
+    const baselineResult = run_simulation();
+    if (!baselineResult.isError) {
+        bestRange = baselineResult.range;
+    }
+
+    const iterations = 500;
+    for (let i = 0; i < iterations; i++) {
+        // Mutate unlocked parameters
+        unlockedInputs.forEach(input => {
+            const currentVal = originalParams[input.id];
+            // Random mutation +/- 20%
+            const mutation = currentVal * 0.2 * (Math.random() * 2 - 1);
+            let newVal = currentVal + mutation;
+
+            // Constrain
+            if (newVal < 0) newVal = 0.001;
+
+            input.value = newVal.toFixed(3);
+        });
+
+        // Test new params
+        const result = run_simulation();
+        if (!result.isError && result.range > bestRange) {
+            bestRange = result.range;
+            unlockedInputs.forEach(input => {
+                bestParams[input.id] = parseFloat(input.value);
+            });
+        }
+    }
+
+    // Apply best params
+    unlockedInputs.forEach(input => {
+        input.value = bestParams[input.id].toFixed(3);
+    });
+
+    // Final run to update UI
+    runSimUI();
+    alert(`Tối ưu hóa hoàn tất. Tầm xa lớn nhất tìm thấy: ${bestRange.toFixed(2)} m`);
 }
 
 // --- CHART.JS INTEGRATION ---
@@ -1749,8 +1819,14 @@ function initChart() {
     if (chartMain) chartMain.destroy();
     const ctx = document.getElementById('mainChart').getContext('2d');
 
+    // Dynamically get CSS variables for colors
+    const rootStyle = getComputedStyle(document.documentElement);
+    const accent1 = rootStyle.getPropertyValue('--accent-1').trim() || '#0000ff';
+    const accent2 = rootStyle.getPropertyValue('--accent-2').trim() || '#ff0000';
+    const textColor = rootStyle.getPropertyValue('--text-main').trim() || '#000000';
+
     // Set default Chart.js font colors to match theme
-    Chart.defaults.color = '#8b9bb4';
+    Chart.defaults.color = textColor;
     Chart.defaults.font.family = "'Roboto Mono', monospace";
 
     chartMain = new Chart(ctx, {
@@ -1850,7 +1926,7 @@ function updateChart(dataArrays) {
         datasets.push({
             label: axisLabels[y1Key],
             data: d1,
-            borderColor: 'var(--accent-1)', // Cyan (adaptive)
+            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--accent-1').trim() || '#0000ff', // Adaptive
             backgroundColor: 'transparent',
             pointRadius: 0,
             pointHoverRadius: 4,
@@ -1871,7 +1947,7 @@ function updateChart(dataArrays) {
         datasets.push({
             label: axisLabels[y2Key],
             data: d2,
-            borderColor: 'var(--accent-2)', // Green (adaptive)
+            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--accent-2').trim() || '#ff0000', // Adaptive
             backgroundColor: 'transparent',
             pointRadius: 0,
             pointHoverRadius: 4,
