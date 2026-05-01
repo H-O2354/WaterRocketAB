@@ -392,6 +392,103 @@ legend {
 .custom-chart-tooltip th { color: var(--accent-orange); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; text-align: left; }
 .custom-chart-tooltip td { padding-top: 4px; }
 
+
+.tree, .tree ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    color: var(--text-main);
+}
+.tree ul {
+    margin-left: 20px;
+    border-left: 1px dashed var(--accent-cyan);
+}
+.tree li {
+    margin: 10px 0;
+    padding-left: 15px;
+    position: relative;
+}
+.tree li::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 0;
+    width: 10px;
+    border-top: 1px dashed var(--accent-cyan);
+}
+.tree li.tree-head::before, .tree li.tree-head {
+    border: none;
+    padding: 0;
+    margin-left: 0;
+    font-size: 1.2rem;
+    color: var(--accent-orange);
+    font-weight: bold;
+}
+.tree-title {
+    font-weight: bold;
+    color: var(--accent-green);
+    display: inline-block;
+    margin-bottom: 5px;
+}
+.tree-math {
+    background: rgba(10, 16, 24, 0.5);
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    color: #a0aec0;
+}
+
+
+/* Improve specific input layout */
+.input-group label {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+.input-row {
+    width: 100%;
+}
+
+
+/* Animations & Transitions */
+button {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+button:hover {
+    box-shadow: 0 0 15px currentColor;
+    transform: translateY(-2px);
+}
+.stat-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 240, 255, 0.2);
+    border-color: var(--accent-cyan);
+}
+input, select {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+input:focus, select:focus {
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+}
+.modal-content {
+    animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+fieldset {
+    transition: opacity 0.4s ease;
+}
+
 </style>
 
     <!-- Chart.js and plugins -->
@@ -411,9 +508,8 @@ legend {
     <header>
         <h1>WATER ROCKET TELEMETRY DASHBOARD</h1>
         <div class="header-controls">
-            <button id="btn-proof" onclick="document.getElementById('proof-modal').style.display='block'">MATH PROOF</button>
-            <button id="btn-arch" onclick="document.getElementById('arch-modal').style.display='block'">SYSTEM ARCHITECTURE</button>
-            <button id="btn-equations" onclick="openModal()">VIEW PHYSICS EQUATIONS</button>
+            <button id="btn-docs" onclick="document.getElementById('docs-modal').style.display='block'">TÀI LIỆU VẬT LÝ & TOÁN HỌC</button>
+            <button id="btn-arch" onclick="document.getElementById('arch-modal').style.display='block'">KIẾN TRÚC HỆ THỐNG</button>
             <button id="btn-force-run" onclick="runSimUI()">FORCE RECALCULATE</button>
         </div>
     </header>
@@ -468,25 +564,30 @@ legend {
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Fin Root Chord (mm)</label>
+                    <label>Fin Root Chord (mm) <span class="help" title="Chiều dài chân cánh">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-fin-root" value="100" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Fin Tip Chord (mm)</label>
+                    <label>Fin Tip Chord (mm) <span class="help" title="Chiều dài đỉnh cánh">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-fin-tip" value="50" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Fin Span (mm)</label>
+                    <label>Fin Span (mm) <span class="help" title="Sải cánh">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-fin-span" value="60" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
+                </div>
+
+                <div class="input-group" id="card-friction" style="display: none; background: rgba(255, 157, 0, 0.1); padding: 5px; border-left: 3px solid var(--accent-orange);">
+                    <label style="color: var(--accent-orange); font-weight: bold; margin-bottom:0;">-> Cork Friction REQD <span class="help" title="Ma sát nút bần yêu cầu">?</span></label>
+                    <div id="val-cork-friction" style="color: var(--accent-cyan); font-weight: bold; font-size: 1.1rem; text-align:right;">0.00 kgf</div>
                 </div>
             </fieldset>
 
@@ -525,35 +626,35 @@ legend {
                     </select>
                 </div>
                 <div class="input-group">
-                    <label>Mass of Salt (g)</label>
+                    <label>Mass of Salt (g) <span class="help" title="Khối lượng muối">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-mass-salt" value="50" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Volume of Vinegar (ml)</label>
+                    <label>Volume of Vinegar (ml) <span class="help" title="Thể tích giấm">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-vol-vinegar" value="500" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Acid Conc. (% m/v)</label>
+                    <label>Acid Conc. (% m/v) <span class="help" title="Nồng độ Acid">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-acid-conc" value="5" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Gas Yield Eff. (%)</label>
+                    <label>Gas Yield Eff. (%) <span class="help" title="Hiệu suất sinh khí">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-gas-eff" value="85" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Pop-off Pressure (PSI)</label>
+                    <label>Pop-off Pressure (PSI) <span class="help" title="Áp suất bung nút">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-popoff" value="80" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
@@ -564,21 +665,21 @@ legend {
             <fieldset id="fs-thrust">
                 <legend>Thrust System</legend>
                 <div class="input-group">
-                    <label>Nozzle Diameter (mm)</label>
+                    <label>Nozzle Diameter (mm) <span class="help" title="Đường kính vòi phun">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-d-nozzle" value="22" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Launch Tube Length (m)</label>
+                    <label>Launch Tube Length (m) <span class="help" title="Chiều dài ống dẫn hướng">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-l-tube" value="0.5" step="0.1" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Launch Tube OD (mm)</label>
+                    <label>Launch Tube OD (mm) <span class="help" title="Đường kính ngoài ống dẫn">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-d-tube" value="20" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
@@ -596,21 +697,21 @@ legend {
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Drag Coefficient (Cd)</label>
+                    <label>Drag Coefficient (Cd) <span class="help" title="Hệ số cản không khí">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-cd" value="0.45" step="0.01" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Air Temperature (C)</label>
+                    <label>Air Temperature (C) <span class="help" title="Nhiệt độ môi trường">?</span></label>
                     <div class="input-row">
                         <input type="number" id="in-temp" value="25" onchange="runSimUI()">
                         <button class="opt-lock" onclick="toggleLock(this)">🔒</button>
                     </div>
                 </div>
                 <div class="input-group">
-                    <label>Air Density (kg/m³)</label>
+                    <label>Air Density (kg/m³) <span class="help" title="Khối lượng riêng không khí">?</span></label>
                     <select id="in-env" onchange="runSimUI()">
                         <option value="1.225">1.225 (Sea Level)</option>
                         <option value="1.056">1.056 (High Altitude)</option>
@@ -652,10 +753,7 @@ legend {
                     <div class="stat-label">Burn Time</div>
                     <div class="stat-value" id="val-burn-time">0.00 s</div>
                 </div>
-                <div class="stat-card" id="card-friction" style="display: none;">
-                    <div class="stat-label">Cork Friction Reqd</div>
-                    <div class="stat-value" id="val-cork-friction">0.00 kgf</div>
-                </div>
+
             </div>
 
             <div class="chart-controls">
@@ -712,32 +810,244 @@ legend {
         </main>
     </div>
 
-    <!-- EQUATIONS MODAL -->
-    <div id="eq-modal" class="modal">
+
+    <!-- DOCS MODAL -->
+    <div id="docs-modal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal()">&times;</span>
-            <h2>Physics Engine Equations</h2>
+            <span class="close-modal" onclick="document.getElementById('docs-modal').style.display='none'">&times;</span>
+            <div class="proof-container" style="padding:0; box-shadow:none; border:none; background:transparent;">
+            <h2>Các Phương Trình Cốt Lõi (Core Equations)</h2>
             <div class="eq-section">
-                <h3>1. Thrust Equations (Air/Water)</h3>
-                <p>Bernoulli's principle for exhaust velocity:</p>
+                <h3>1. Lực Đẩy (Nước/Khí)</h3>
+                <p>Nguyên lý Bernoulli cho vận tốc thoát:</p>
                 $$ v_e = \sqrt{\frac{2(P - P_{atm})}{\rho_w}} $$
-                <p>Mass flow rate and Thrust:</p>
+                <p>Lưu lượng khối lượng và Lực đẩy:</p>
                 $$ \frac{dm_w}{dt} = -C_d A_e \rho_w v_e $$
                 $$ F_{thrust} = \left| \frac{dm_w}{dt} \right| v_e $$
             </div>
             <div class="eq-section">
-                <h3>2. Kinematics (2D)</h3>
-                <p>Net acceleration resolving Thrust, Drag, and Gravity:</p>
+                <h3>2. Động học (2D)</h3>
+                <p>Gia tốc tịnh tiến từ Lực Đẩy, Lực Cản và Trọng Lực:</p>
                 $$ a_x = \frac{T \cos(\theta) - F_d \cos(\theta)}{m} $$
                 $$ a_y = \frac{T \sin(\theta) - F_d \sin(\theta)}{m} - g $$
             </div>
             <div class="eq-section">
-                <h3>3. Aerodynamics</h3>
-                <p>Drag force:</p>
+                <h3>3. Khí động lực học</h3>
+                <p>Lực cản không khí:</p>
                 $$ F_d = \frac{1}{2} \rho_{air} v^2 C_d A $$
+            </div>
+            <hr style="border-color: var(--border-color); margin: 30px 0;">
+
+        <h1>Chứng minh Nền tảng Toán học (Math Proof)</h1>
+
+        <h2>1.1. Hệ quy chiếu Phi quán tính & Bernoulli Không ổn định</h2>
+        <p>Trong môi trường bay, thiết bị bị gia tốc liên tục, tạo ra một hệ quy chiếu phi quán tính. Gia tốc tác dụng lên cột chất lỏng (\(a_{longitudinal}\)) là hình chiếu tích vô hướng của vector gia tốc toàn phần lên vector định hướng quỹ đạo :</p>
+
+        <div class="math-block">
+            $$a_{longitudinal} = \vec{a} \cdot \hat{u} = \frac{a_x v_x + a_y v_y}{v_{mag}}$$
+        </div>
+
+        <p>Phương trình Bernoulli tĩnh học hoàn toàn vô hiệu trong trường hợp này. Ta phải xuất phát từ phương trình Euler đối với dòng chảy trong hệ quy chiếu đang gia tốc :</p>
+
+        <div class="math-block">
+            $$\frac{\partial \vec{V}}{\partial t} + (\vec{V} \cdot \nabla)\vec{V} = -\frac{1}{\rho}\nabla P - \nabla(g z) - \vec{a}_{frame}$$
+        </div>
+
+        <p>Giả định dòng chảy không xoáy, lấy tích phân đường dọc theo đường dòng từ mặt thoáng cột nước (1) đến vòi xả (2) :</p>
+
+        <div class="math-block">
+            $$\int_1^2 \frac{\partial \vec{V}}{\partial t} \cdot d\vec{s} + \frac{v_2^2}{2} - \frac{v_1^2}{2} + \frac{P_2 - P_1}{\rho_{fluid}} + (g + a_{frame})(z_2 - z_1) = 0$$
+        </div>
+
+        <p>Thành phần tích phân gia tốc \(\int_1^2 \frac{\partial \vec{V}}{\partial t} \cdot d\vec{s} \approx a_{longitudinal} \cdot H\) tạo ra cột áp gia tốc. Giải phương trình, ta thu được vận tốc xả nước phi tĩnh :</p>
+
+        <div class="math-block">
+            $$v_e = \sqrt{2 \left( \frac{P_{chamber} - P_{atm}}{\rho_{fluid}} + (g + a_{longitudinal})H \right)}$$
+        </div>
+
+        <h2>1.2. Định luật Bảo toàn và Hệ số Vena Contracta (\(C_c = 0.5\))</h2>
+        <p>Dòng nước khi chui qua lỗ hẹp chịu quán tính cực lớn khiến các đường dòng không thể uốn cong hoàn hảo, gây thắt nghẽn (Vena Contracta).<br>
+Lực đẩy tĩnh ép dòng nước qua lỗ diện tích \(A\) là \(F = \rho g H A\). Tốc độ thay đổi động lượng tại tiết diện co thắt \(a_J\) là :</p>
+
+        <div class="math-block">
+            $$\dot{p} = \dot{m} \cdot v = \rho a_J v^2$$
+        </div>
+
+        <p>Bảo toàn năng lượng cho \(v^2 = 2gH\). Cân bằng \(F = \dot{p}\) :</p>
+
+        <div class="math-block">
+            $$\rho g H A = 2 \rho g H a_J \implies A = 2 a_J \implies C_c = \frac{a_J}{A} = 0.5$$
+        </div>
+
+        <p>Trong thực tế với lỗ xả sắc cạnh (sharp orifice), hệ số này xấp xỉ \(0.611\), đóng vai trò quyết định dòng khối lượng :</p>
+
+        <div class="math-block">
+            $$\dot{m}_w = C_c \cdot C_v \cdot \rho_{fluid} \cdot A_e \cdot v_e$$
+        </div>
+
+        <h2>1.3. Khí động học Siêu thanh: Chứng minh Choked Flow (Mach 1)</h2>
+        <p>Khi hết nước, pha xả khí nén siêu thanh bắt đầu. Từ phương trình liên tục \(\dot{m} = \rho V A\), định luật isentropic \(P T^{-\frac{\gamma}{\gamma - 1}} = \text{const}\), và phương trình khí lý tưởng, ta có hàm lưu lượng :</p>
+
+        <div class="math-block">
+            $$\dot{m}(M) = \frac{A P_0}{\sqrt{T_0}} \sqrt{\frac{\gamma}{R}} \cdot M \cdot \left(1 + \frac{\gamma - 1}{2} M^2\right)^{-\frac{\gamma + 1}{2(\gamma - 1)}}$$
+        </div>
+
+        <p>Tính đạo hàm \(\frac{d\dot{m}}{dM}\) và đặt bằng 0. Với \(C = \frac{\gamma + 1}{2(\gamma - 1)}\) và \(D = \frac{\gamma - 1}{2}\) :</p>
+
+        <div class="math-block">
+            $$(1 + D M^2)^{-C} - 2 C D M^2 (1 + D M^2)^{-C-1} = 0 \implies 1 + D M^2 (1 - 2C) = 0$$
+        </div>
+
+        <p>Thế ngược lại \(C\) và \(D\), toán học chứng minh \(M^2 = 1 \implies M = 1\). Việc thay \(M=1\) trở lại tạo ra phương trình xả nghẹt :</p>
+
+        <div class="math-block">
+            $$\dot{m}^* = A^* P_0 \sqrt{\frac{\gamma}{R T_0}} \left(\frac{2}{\gamma + 1}\right)^{\frac{\gamma + 1}{2(\gamma - 1)}}$$
+        </div>
+
+        <p>Do hơi nước bão hòa, \(\gamma \approx 1.34\), ép tỷ số chênh lệch tới hạn xuống \(\alpha_c \approx 0.455\).</p>
+
+        <h2>1.4. Nhiệt động lực học Buồng đốt (Quá trình Đa hướng)</h2>
+        <p>Do quá trình giãn nở không thể đẳng nhiệt hay hoàn toàn đoạn nhiệt (vì truyền nhiệt từ nước sang khí), ta dùng Định luật 1 Nhiệt động lực học \(dQ = dU + dW\) với \(dU = N c_v dT\) và \(dW = P dV\) được sử dụng để dẫn xuất quá trình đa hướng :</p>
+
+        <div class="math-block">
+            $$(c - c_v) (P dV + V dP) = (c_p - c_v) P dV$$
+        </div>
+
+        <p>Sử dụng đạo hàm theo thời gian, ta có phương trình vi phân sụt áp :</p>
+
+        <div class="math-block">
+            $$\frac{dP}{dt} = \frac{\gamma - 1}{V_{air}} \frac{dQ}{dt} - \gamma \frac{P}{V_{air}} \frac{dV_{air}}{dt}$$
+        </div>
+
+        <p>Với \(dQ/dt\) tính bằng Tương quan Nusselt và hiệu ứng sương mù ngưng tụ chi phối bởi Phương trình Antoine. Đạo hàm \(dV_{air}/dt\) phải dùng đạo hàm chuỗi để cộng hưởng sự co ngót vỏ chai theo định luật Hooke :</p>
+
+        <div class="math-block">
+            $$\frac{dV_{air}}{dt} = A_e v_e - \frac{dV_{bottle}}{dP} \frac{dP}{dt}$$
+        </div>
+
+        <h2>1.5. Khí động học Chuyển âm & Lý thuyết Thân mảnh</h2>
+        <p>Khi qua mức \(100\text{ m/s}\), không khí bị nén. Biến đổi Prandtl-Glauert xử lý phương trình PDE eliptic :</p>
+
+        <div class="math-block">
+            $$(1 - M_\infty^2) \frac{\partial^2 \phi}{\partial x^2} + \frac{\partial^2 \phi}{\partial y^2} + \frac{\partial^2 \phi}{\partial z^2} = 0 \implies C_{D(Mach)} = \frac{C_{D0}}{\sqrt{1 - M_\infty^2}}$$
+        </div>
+
+        <p>Về độ ổn định (phương trình Barrowman), Lý thuyết Thân mảnh (Slender Body Theory) lấy tích phân Đạo hàm Dòng (Material Derivative) dọc theo mũi nón, triệt tiêu mọi biên dạng \(d(x)\) :</p>
+
+        <div class="math-block">
+            $$Z_{nose} = \int_0^{L_N} \rho_{air} U^2 \alpha \frac{\pi}{4} \left( \frac{\partial d^2}{\partial x} \right) dx \implies C_{N\alpha, nose} = 2.0$$
+        </div>
+
+        <h2>1.6. Tối ưu hóa CMA-ES & Đa tạp Riemann</h2>
+        <p>CMA-ES cập nhật phân phối \(\mathcal{N}(m, C)\) trên đa tạp Riemann bằng Gradient Tự nhiên :</p>
+
+        <div class="math-block">
+            $$\tilde{\nabla} J(\theta) = F^{-1}(\theta) \nabla_\theta J(\theta)$$
+        </div>
+
+        <p>Với \(F(\theta)\) là Ma trận Thông tin Fisher. Việc cập nhật Ma trận Hiệp phương sai toàn diện (Full Covariance) giúp học các tương quan chéo (cross-dependencies) phi tuyến.</p>
+    </div>
+
+</body>
+        </div>
+    </div>
+
+
+    <!-- ARCHITECTURE MODAL -->
+    <div id="arch-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="document.getElementById('arch-modal').style.display='none'">&times;</span>
+            <div class="doc-container" style="padding:0; box-shadow:none; border:none; background:transparent;">
+            <h2>Kiến Trúc Hệ Thống (System Architecture)</h2>
+            <p>Sơ đồ Luồng xử lý tính toán Vật lý</p>
+            <ul class="tree">
+                <li class="tree-head">compute_derivatives(t, Y, params)</li>
+                <li>
+                    <span class="tree-title">1. GIẢI NÉN VECTOR TRẠNG THÁI & THAM SỐ</span>
+                    <ul>
+                        <li>Trích xuất biến thiên (Y): <span class="tree-math">\\( x, y, v_x, v_y, m_w, P \\)</span></li>
+                        <li>Trích xuất hằng số (params): <span class="tree-math">\\( C_d, A_c, A_e, \\rho_w, \\rho_{air}, P_{atm}, g, V_0 \\dots \\)</span></li>
+                    </ul>
+                </li>
+                <li>
+                    <span class="tree-title">2. KHÍ ĐỘNG HỌC & LỰC CẢN (Fd)</span>
+                    <ul>
+                        <li><span class="tree-math">\\( v_{mag} = \\sqrt{v_x^2 + v_y^2} \\)</span></li>
+                        <li>Xác định hướng: <span class="tree-math">\\( \\cos(\\theta) = \\frac{v_x}{v_{mag}}, \\sin(\\theta) = \\frac{v_y}{v_{mag}} \\)</span></li>
+                        <li>Tính độ ổn định Static Margin: <span class="tree-math">\\( sm = \\frac{CoP - CoM}{d_{body}} \\)</span></li>
+                        <li>Hệ số cản hiệu dụng: <span class="tree-math">\\( C_{d,eff} = C_d \\cdot WOBBLE\\_FACTOR \\)</span></li>
+                        <li><span class="tree-math">\\( F_d = \\frac{1}{2} \\rho_{air} C_{d,eff} A_c v_{mag}^2 \\)</span></li>
+                    </ul>
+                </li>
+                <li>
+                    <span class="tree-title">3. BIẾN DẠNG VỎ CHAI (PET Elasticity)</span>
+                    <ul>
+                        <li>Gia tốc dọc trục: <span class="tree-math">\\( a_{longitudinal} = a_{prev,x}\\cos(\\theta) + (a_{prev,y}+g)\\sin(\\theta) \\)</span></li>
+                        <li>Độ phình Hooke: <span class="tree-math">\\( dV_{elastic} = V_0 (P - P_{atm}) \\frac{D}{2 E t_{wall}} \\)</span></li>
+                    </ul>
+                </li>
+                <li>
+                    <span class="tree-title">4. BỘ ĐỊNH TUYẾN LỰC ĐẨY (MAIN PHASE TREE)</span>
+                    <ul>
+                        <li>
+                            <span class="tree-title">[PHA A]: CÒN NƯỚC (if \\( m_w > 0 \\))</span>
+                            <ul>
+                                <li><strong>A1: Trong ống phóng</strong>
+                                    <ul>
+                                        <li>Lực ma sát O-ring: <span class="tree-math">\\( F_{friction} = P_{contact} \\cdot A_{contact} \\cdot \\mu \\)</span></li>
+                                        <li><span class="tree-math">\\( Thrust = (P - P_{atm})A_{tube} - F_{friction} \\)</span></li>
+                                        <li><span class="tree-math">\\( \\frac{dP}{dt} = - \\frac{\\gamma P}{V_{gas}} A_{tube} v_{mag} \\)</span></li>
+                                    </ul>
+                                </li>
+                                <li><strong>A2: Đã rời ống phóng</strong>
+                                    <ul>
+                                        <li>Áp suất đáy: <span class="tree-math">\\( P_{bottom} = (P - P_{atm}) + \\rho_w a_{longitudinal} h_{water} \\)</span></li>
+                                        <li><span class="tree-math">\\( v_e = \\sqrt{\\frac{2 P_{bottom}}{\\rho_w}} \\)</span></li>
+                                        <li><span class="tree-math">\\( \\frac{dm_w}{dt} = -C_{d,nozzle} A_e \\rho_w v_e \\)</span></li>
+                                        <li><span class="tree-math">\\( Thrust = \\left|\\frac{dm_w}{dt}\\right| v_e \\)</span></li>
+                                    </ul>
+                                </li>
+                                <li><strong>Nhiệt Động Học Pha A</strong>
+                                    <ul>
+                                        <li>Truyền nhiệt đối lưu: <span class="tree-math">\\( \\frac{dQ}{dt} = h_{conv} A_{surf} (T_{atm} - T_{chamber}) \\)</span></li>
+                                        <li><span class="tree-math">\\( \\frac{dP}{dt} = \\frac{\\gamma - 1}{V_{gas}} \\frac{dQ}{dt} - \\frac{\\gamma P}{V_{gas}} \\frac{dV_{gas}}{dt} \\)</span></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <span class="tree-title">[PHA B]: HẾT NƯỚC, CÒN KHÍ (else if \\( P > P_{atm} \\))</span>
+                            <ul>
+                                <li><strong>B1: Choked Flow (Nghẹt - Siêu âm)</strong>
+                                    <ul>
+                                        <li><span class="tree-math">\\( \\frac{dm_{air}}{dt} = -C_d A_e P \\sqrt{\\frac{\\gamma}{R T}} \\left(\\frac{2}{\\gamma+1}\\right)^{\\frac{\\gamma+1}{2(\\gamma-1)}} \\)</span></li>
+                                        <li><span class="tree-math">\\( Thrust = \\left|\\frac{dm_{air}}{dt}\\right| v_{gas} + (P_{exit} - P_{atm})A_e \\)</span></li>
+                                    </ul>
+                                </li>
+                                <li><strong>B2: Subsonic Flow (Dưới âm)</strong>
+                                    <ul>
+                                        <li><span class="tree-math">\\( Mach = \\sqrt{\\frac{2}{\\gamma - 1} \\left(\\left(\\frac{P}{P_{atm}}\\right)^{\\frac{\\gamma-1}{\\gamma}} - 1\\right)} \\)</span></li>
+                                        <li><span class="tree-math">\\( Thrust = \\left|\\frac{dm_{air}}{dt}\\right| v_{gas} \\)</span></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <span class="tree-title">5. TỔNG HỢP GIA TỐC (NEWTON 2)</span>
+                    <ul>
+                        <li><span class="tree-math">\\( a_x = \\frac{Thrust \\cdot \\cos(\\theta) - F_d \\cdot \\cos(\\theta)}{m_{total}} \\)</span></li>
+                        <li><span class="tree-math">\\( a_y = \\frac{Thrust \\cdot \\sin(\\theta) - F_d \\cdot \\sin(\\theta)}{m_{total}} - g \\)</span></li>
+                    </ul>
+                </li>
+                <li class="tree-head" style="margin-top: 15px;">&#10142; return [vx, vy, ax, ay, dm_w_dt, dP_dt]</li>
+            </ul>
             </div>
         </div>
     </div>
+
+
 
     <script>
 
@@ -1115,11 +1425,6 @@ function toggleLock(btn) {
     }
 }
 
-// --- MODAL LOGIC ---
-function openModal() {
-    document.getElementById("eq-modal").style.display = "block";
-}
-
 function closeModal() {
     document.getElementById("eq-modal").style.display = "none";
 }
@@ -1380,7 +1685,7 @@ function initChart() {
                         mode: 'xy'
                     },
                     zoom: {
-                        wheel: { enabled: true },
+                        wheel: { enabled: false },
                         pinch: { enabled: true },
                         drag: { enabled: true, backgroundColor: 'rgba(0, 240, 255, 0.2)' },
                         mode: 'xy'
@@ -1497,339 +1802,19 @@ function updateChart(dataArrays) {
     chartMain.update();
 }
 
+
+// --- MODAL LOGIC ---
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = "none";
+    }
+}
+
 // --- MOCK DATA GENERATOR (Temporary) ---
 
 </script>
 
-    <!-- MATH PROOF MODAL -->
-    <div id="proof-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="document.getElementById('proof-modal').style.display='none'">&times;</span>
-            <div class="proof-container" style="padding:0; box-shadow:none; border:none; background:transparent;">
-        <h1>Chứng minh Nền tảng Toán học (Math Proof)</h1>
 
-        <h2>1.1. Hệ quy chiếu Phi quán tính & Bernoulli Không ổn định</h2>
-        <p>Trong môi trường bay, thiết bị bị gia tốc liên tục, tạo ra một hệ quy chiếu phi quán tính. Gia tốc tác dụng lên cột chất lỏng (\(a_{longitudinal}\)) là hình chiếu tích vô hướng của vector gia tốc toàn phần lên vector định hướng quỹ đạo :</p>
-
-        <div class="math-block">
-            $$a_{longitudinal} = \vec{a} \cdot \hat{u} = \frac{a_x v_x + a_y v_y}{v_{mag}}$$
-        </div>
-
-        <p>Phương trình Bernoulli tĩnh học hoàn toàn vô hiệu trong trường hợp này. Ta phải xuất phát từ phương trình Euler đối với dòng chảy trong hệ quy chiếu đang gia tốc :</p>
-
-        <div class="math-block">
-            $$\frac{\partial \vec{V}}{\partial t} + (\vec{V} \cdot \nabla)\vec{V} = -\frac{1}{\rho}\nabla P - \nabla(g z) - \vec{a}_{frame}$$
-        </div>
-
-        <p>Giả định dòng chảy không xoáy, lấy tích phân đường dọc theo đường dòng từ mặt thoáng cột nước (1) đến vòi xả (2) :</p>
-
-        <div class="math-block">
-            $$\int_1^2 \frac{\partial \vec{V}}{\partial t} \cdot d\vec{s} + \frac{v_2^2}{2} - \frac{v_1^2}{2} + \frac{P_2 - P_1}{\rho_{fluid}} + (g + a_{frame})(z_2 - z_1) = 0$$
-        </div>
-
-        <p>Thành phần tích phân gia tốc \(\int_1^2 \frac{\partial \vec{V}}{\partial t} \cdot d\vec{s} \approx a_{longitudinal} \cdot H\) tạo ra cột áp gia tốc. Giải phương trình, ta thu được vận tốc xả nước phi tĩnh :</p>
-
-        <div class="math-block">
-            $$v_e = \sqrt{2 \left( \frac{P_{chamber} - P_{atm}}{\rho_{fluid}} + (g + a_{longitudinal})H \right)}$$
-        </div>
-
-        <h2>1.2. Định luật Bảo toàn và Hệ số Vena Contracta (\(C_c = 0.5\))</h2>
-        <p>Dòng nước khi chui qua lỗ hẹp chịu quán tính cực lớn khiến các đường dòng không thể uốn cong hoàn hảo, gây thắt nghẽn (Vena Contracta).<br>
-Lực đẩy tĩnh ép dòng nước qua lỗ diện tích \(A\) là \(F = \rho g H A\). Tốc độ thay đổi động lượng tại tiết diện co thắt \(a_J\) là :</p>
-
-        <div class="math-block">
-            $$\dot{p} = \dot{m} \cdot v = \rho a_J v^2$$
-        </div>
-
-        <p>Bảo toàn năng lượng cho \(v^2 = 2gH\). Cân bằng \(F = \dot{p}\) :</p>
-
-        <div class="math-block">
-            $$\rho g H A = 2 \rho g H a_J \implies A = 2 a_J \implies C_c = \frac{a_J}{A} = 0.5$$
-        </div>
-
-        <p>Trong thực tế với lỗ xả sắc cạnh (sharp orifice), hệ số này xấp xỉ \(0.611\), đóng vai trò quyết định dòng khối lượng :</p>
-
-        <div class="math-block">
-            $$\dot{m}_w = C_c \cdot C_v \cdot \rho_{fluid} \cdot A_e \cdot v_e$$
-        </div>
-
-        <h2>1.3. Khí động học Siêu thanh: Chứng minh Choked Flow (Mach 1)</h2>
-        <p>Khi hết nước, pha xả khí nén siêu thanh bắt đầu. Từ phương trình liên tục \(\dot{m} = \rho V A\), định luật isentropic \(P T^{-\frac{\gamma}{\gamma - 1}} = \text{const}\), và phương trình khí lý tưởng, ta có hàm lưu lượng :</p>
-
-        <div class="math-block">
-            $$\dot{m}(M) = \frac{A P_0}{\sqrt{T_0}} \sqrt{\frac{\gamma}{R}} \cdot M \cdot \left(1 + \frac{\gamma - 1}{2} M^2\right)^{-\frac{\gamma + 1}{2(\gamma - 1)}}$$
-        </div>
-
-        <p>Tính đạo hàm \(\frac{d\dot{m}}{dM}\) và đặt bằng 0. Với \(C = \frac{\gamma + 1}{2(\gamma - 1)}\) và \(D = \frac{\gamma - 1}{2}\) :</p>
-
-        <div class="math-block">
-            $$(1 + D M^2)^{-C} - 2 C D M^2 (1 + D M^2)^{-C-1} = 0 \implies 1 + D M^2 (1 - 2C) = 0$$
-        </div>
-
-        <p>Thế ngược lại \(C\) và \(D\), toán học chứng minh \(M^2 = 1 \implies M = 1\). Việc thay \(M=1\) trở lại tạo ra phương trình xả nghẹt :</p>
-
-        <div class="math-block">
-            $$\dot{m}^* = A^* P_0 \sqrt{\frac{\gamma}{R T_0}} \left(\frac{2}{\gamma + 1}\right)^{\frac{\gamma + 1}{2(\gamma - 1)}}$$
-        </div>
-
-        <p>Do hơi nước bão hòa, \(\gamma \approx 1.34\), ép tỷ số chênh lệch tới hạn xuống \(\alpha_c \approx 0.455\).</p>
-
-        <h2>1.4. Nhiệt động lực học Buồng đốt (Quá trình Đa hướng)</h2>
-        <p>Do quá trình giãn nở không thể đẳng nhiệt hay hoàn toàn đoạn nhiệt (vì truyền nhiệt từ nước sang khí), ta dùng Định luật 1 Nhiệt động lực học \(dQ = dU + dW\) với \(dU = N c_v dT\) và \(dW = P dV\) được sử dụng để dẫn xuất quá trình đa hướng :</p>
-
-        <div class="math-block">
-            $$(c - c_v) (P dV + V dP) = (c_p - c_v) P dV$$
-        </div>
-
-        <p>Sử dụng đạo hàm theo thời gian, ta có phương trình vi phân sụt áp :</p>
-
-        <div class="math-block">
-            $$\frac{dP}{dt} = \frac{\gamma - 1}{V_{air}} \frac{dQ}{dt} - \gamma \frac{P}{V_{air}} \frac{dV_{air}}{dt}$$
-        </div>
-
-        <p>Với \(dQ/dt\) tính bằng Tương quan Nusselt và hiệu ứng sương mù ngưng tụ chi phối bởi Phương trình Antoine. Đạo hàm \(dV_{air}/dt\) phải dùng đạo hàm chuỗi để cộng hưởng sự co ngót vỏ chai theo định luật Hooke :</p>
-
-        <div class="math-block">
-            $$\frac{dV_{air}}{dt} = A_e v_e - \frac{dV_{bottle}}{dP} \frac{dP}{dt}$$
-        </div>
-
-        <h2>1.5. Khí động học Chuyển âm & Lý thuyết Thân mảnh</h2>
-        <p>Khi qua mức \(100\text{ m/s}\), không khí bị nén. Biến đổi Prandtl-Glauert xử lý phương trình PDE eliptic :</p>
-
-        <div class="math-block">
-            $$(1 - M_\infty^2) \frac{\partial^2 \phi}{\partial x^2} + \frac{\partial^2 \phi}{\partial y^2} + \frac{\partial^2 \phi}{\partial z^2} = 0 \implies C_{D(Mach)} = \frac{C_{D0}}{\sqrt{1 - M_\infty^2}}$$
-        </div>
-
-        <p>Về độ ổn định (phương trình Barrowman), Lý thuyết Thân mảnh (Slender Body Theory) lấy tích phân Đạo hàm Dòng (Material Derivative) dọc theo mũi nón, triệt tiêu mọi biên dạng \(d(x)\) :</p>
-
-        <div class="math-block">
-            $$Z_{nose} = \int_0^{L_N} \rho_{air} U^2 \alpha \frac{\pi}{4} \left( \frac{\partial d^2}{\partial x} \right) dx \implies C_{N\alpha, nose} = 2.0$$
-        </div>
-
-        <h2>1.6. Tối ưu hóa CMA-ES & Đa tạp Riemann</h2>
-        <p>CMA-ES cập nhật phân phối \(\mathcal{N}(m, C)\) trên đa tạp Riemann bằng Gradient Tự nhiên :</p>
-
-        <div class="math-block">
-            $$\tilde{\nabla} J(\theta) = F^{-1}(\theta) \nabla_\theta J(\theta)$$
-        </div>
-
-        <p>Với \(F(\theta)\) là Ma trận Thông tin Fisher. Việc cập nhật Ma trận Hiệp phương sai toàn diện (Full Covariance) giúp học các tương quan chéo (cross-dependencies) phi tuyến.</p>
-    </div>
-
-</body>
-        </div>
-    </div>
-
-    <!-- ARCHITECTURE MODAL -->
-    <div id="arch-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="document.getElementById('arch-modal').style.display='none'">&times;</span>
-            <div class="doc-container" style="padding:0; box-shadow:none; border:none; background:transparent;"><div class="proof-container">
-        <h2>Kiến Trúc Hệ Thống (System Architecture)</h2>
-
-        <pre><code>low-level overview (cấu trúc cây tree):
-
-compute_derivatives(t, Y, params)
-
-|
-
-├──  GIẢI NÉN VECTOR TRẠNG THÁI & THAM SỐ
-
-| ├── Trích xuất biến thiên (Y): x, y, vx, vy, m_w, P
-
-| └── Trích xuất hằng số (params): C_d_base, A_c, A_e, rho_w, rho_air, P_atm, g, V_0, L_tube, gamma, R...
-
-|
-
-├──  KHÍ ĐỘNG HỌC & LỰC CẢN (Fd)
-
-| ├── v_mag = sqrt(vx2 + vy2)
-
-| ├── dist = sqrt((x - x0)**2 + (y - y0)2)
-
-| ├── Xác định hướng:
-
-| | ├── cos_th = vx / (v_mag + 1e-9)  // Tránh chia cho 0
-
-| | └── sin_th = vy / (v_mag + 1e-9)
-
-| ├── Tính độ ổn định (sm) = calculate_static_margin(m_w)
-
-| ├── WOBBLE_FACTOR = calc_wobble_factor(sm, v_mag, t)  <--
-
-| ├── C_d_eff = C_d_base * WOBBLE_FACTOR
-
-| └── Fd = 0.5 * rho_air * C_d_eff * A_c * (v_mag2)
-
-|
-
-├──  TÍNH GIA TỐC DỌC TRỤC & BIẾN DẠNG VỎ CHAI (PET)
-
-| ├── Lấy gia tốc bước trước: a_prev_x, a_prev_y
-
-| ├── a_longitudinal = (a_prev_x * cos_th) + ((a_prev_y + g) * sin_th) <--
-
-| └── dV_elastic = V_0 * (P - P_atm) * (D / (2 * E * t_wall)) (Độ phình Hooke cho thành mỏng)
-
-|
-
-├──  BỘ ĐỊNH TUYẾN LỰC ĐẨY (MAIN PHASE TREE)
-
-| |
-
-| ├── [PHA A]: CÒN NƯỚC (if m_w > 0)
-
-| | |
-
-| | ├── A1: Trong ống phóng (if dist < L_tube)
-
-| | | ├── F_friction_O_ring = P_contact * Area_contact * mu  <--
-
-| | | ├── Thrust_piston = (P - P_atm) * A_tube - F_friction_O_ring
-
-| | | ├── dm_w_dt = 0
-
-| | | └── dP_dt = - (gamma * P / V_gas) * (A_tube * v_mag) (Tụt áp do tăng thể tích ống)
-
-| | |
-
-| | ├── A2: Đã rời ống (else)
-
-| | | ├── P_bottom = (P - P_atm) + (rho_w * a_longitudinal * h_water) (Áp suất thủy tĩnh đáy)
-
-| | | ├── v_e = sqrt(2 * P_bottom / rho_w) (Bernoulli phi quán tính)
-
-| | | ├── dm_w_dt = -C_d_nozzle * A_e * rho_w * v_e
-
-| | | └── Thrust_nước = abs(dm_w_dt) * v_e
-
-| | |
-
-| | └── Nhiệt Động Học Pha A (Khí nén đẩy nước)
-
-| | | ├── V_gas = V_0 + dV_elastic - (m_w / rho_w)
-
-| | | ├── T_chamber = (P * V_gas) / (m_air * R)
-
-| | | ├── h_conv = calc_convective_coeff(Reynolds, Prandtl)
-
-| | | ├── dQ_dt = h_conv * A_surf * (T_atm - T_chamber) <--
-
-| | | └── dP_dt = ((gamma - 1) / V_gas) * dQ_dt - (gamma * P / V_gas) * (dV_gas_dt)
-
-| |
-
-| ├── [PHA B]: HẾT NƯỚC, CÒN KHÍ (else if P > P_atm * 1.01)
-
-| | ├── Ghi đè: dm_w_dt = 0, V_gas = V_0 + dV_elastic
-
-| | |
-
-| | ├── B1: Dùng Hóa Học (if is_chem == True)
-
-| | | ├── dP_dt = f(m_citric, m_baking_soda) - tốc độ phản ứng
-
-| | | └── Thrust = 0 (Chỉ tạo áp, không có dòng khối lượng lớn thoát ra)
-
-| | |
-
-| | └── B2: Dùng Khí Nén Xả Trực Tiếp (else)
-
-| | | ├── p_ratio = P_atm / P
-
-| | | ├── B2.a: Nghẹt / Choked Flow (if p_ratio < 0.455)
-
-| | | | ├── v_gas = sqrt(gamma * R * T_chamber) (Đạt Mach 1)
-
-| | | | ├── dm_air_dt = -C_d * A_e * P * sqrt(gamma / (R * T_chamber)) * (2/(gamma+1))^((gamma+1)/(2*(gamma-1)))
-
-| | | | └── Thrust_siêu_âm = abs(dm_air_dt) * v_gas + (P_exit - P_atm) * A_e
-
-| | | |
-
-| | | ├── B2.b: Dưới âm / Subsonic (else)
-
-| | | | ├── Mach = sqrt((2 / (gamma - 1)) * ((P / P_atm)**((gamma - 1) / gamma) - 1))
-
-| | | | ├── v_gas = Mach * sqrt(gamma * R * T_exit)
-
-| | | | ├── dm_air_dt = Khối lượng khí thoát ra ở chế độ dưới âm
-
-| | | | └── Thrust_dưới_âm = abs(dm_air_dt) * v_gas
-
-| | | |
-
-| | | └── Nhiệt Động Học Pha B (Khí tự xả làm lạnh buồng đốt)
-
-| | | ├── dQ_dt = h_conv * A_surf * (T_atm - T_chamber)
-
-| | | └── dP_dt = (gamma * R * T_chamber / V_gas) * dm_air_dt + ((gamma - 1) / V_gas) * dQ_dt
-
-| |
-
-| └── [PHA C]: BAY TỰ DO / COASTING (else)
-
-|   ├── Thrust = 0
-
-|   ├── dm_w_dt = 0, dm_air_dt = 0
-
-|   └── Ép P = P_atm, dP_dt = 0
-
-|
-
-├──  ỔN ĐỊNH KHÍ ĐỘNG HỌC (BARROWMAN)
-
-| ├── Center of Mass (CoM_total):
-
-| | └── CoM_total = (m_empty * CoM_empty + m_w * CoM_water) / (m_empty + m_w)
-
-| ├── Center of Pressure (CoP):
-
-| | └── CoP = ((C_N)_N * X_N + (C_N)_F * X_F) / ((C_N)_N + (C_N)_F)
-
-| └── Static Margin (sm):
-
-|   └── sm = (CoP - CoM_total) / d_body
-
-|   └── Trả sm về khối  để tính WOBBLE_FACTOR
-
-|
-
-├──  TỔNG HỢP GIA TỐC BƯỚC NHẢY (NEWTON 2)
-
-| ├── Khối lượng tổng: m_total = m_empty + m_w + m_air
-
-| |
-
-| ├── Ràng buộc mặt đất (if dist < L_tube)
-
-| | ├── a_net = (Thrust - Fd) / m_total - g * sin(theta_0)
-
-| | ├── Cắt âm: if a_net < 0 and dist == 0 then a_net = 0 (Chống lún mặt đất)
-
-| | ├── ax = a_net * cos(theta_0)
-
-| | └── ay = a_net * sin(theta_0)
-
-| |
-
-| └── Bay tự do (else)
-
-|   ├── ax = (Thrust * cos_th - Fd * cos_th) / m_total
-
-|   └── ay = (Thrust * sin_th - Fd * sin_th) / m_total - g
-
-|
-
-└──  HOÀN TẤT
-
-  └── return [vx, vy, ax, ay, dm_w_dt, dP_dt]</code></pre>
-
-    </div>
-
-</body></div>
-        </div>
-    </div>
 
 </body>
 </html>
