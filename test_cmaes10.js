@@ -21,7 +21,7 @@ const { chromium } = require('playwright');
 
     await page.waitForFunction(() => {
         const btn = document.querySelector('button[onclick="optimizeRange()"]');
-        return btn && !btn.classList.contains('running');
+        return btn && btn.innerText.includes('CHẠY');
     }, { timeout: 120000 });
 
     console.log("Optimization finished. Getting values:");

@@ -999,7 +999,7 @@ Lực đẩy tĩnh ép dòng nước qua lỗ diện tích \(A\) là \(F = \rho 
                 <li>
                     <span class="tree-title">1. GIẢI NÉN VECTOR TRẠNG THÁI & THAM SỐ</span>
                     <ul>
-                        <li>Trích xuất biến thiên (Y): x, y, vx, vy, m_w, P</li>
+                        <li>Trích xuất biến thiên (Y): <span class="tree-math">\( x, y, v_x, v_y, m_w, P \)</span></li>
                         <li>Trích xuất hằng số (params): <span class="tree-math">\( C_d, A_c, A_e, \\rho_w, \\rho_{air}, P_{atm}, g, V_0 \\dots \)</span></li>
                     </ul>
                 </li>
@@ -1024,12 +1024,12 @@ Lực đẩy tĩnh ép dòng nước qua lỗ diện tích \(A\) là \(F = \rho 
                     <span class="tree-title">4. BỘ ĐỊNH TUYẾN LỰC ĐẨY (MAIN PHASE TREE)</span>
                     <ul>
                         <li>
-                            <span class="tree-title">[PHA A]: CÒN NƯỚC (if m_w > 0)</span>
+                            <span class="tree-title">[PHA A]: CÒN NƯỚC (if \( m_w > 0 \))</span>
                             <ul>
                                 <li><strong>A1: Trong ống phóng</strong>
                                     <ul>
                                         <li>Lực ma sát O-ring: <span class="tree-math">\( F_{friction} = P_{contact} \\cdot A_{contact} \\cdot \\mu \)</span></li>
-                                        <li>Thrust = (P - P_atm) * A_tube - F_friction</li>
+                                        <li><span class="tree-math">\( Thrust = (P - P_{atm})A_{tube} - F_{friction} \)</span></li>
                                         <li><span class="tree-math">\( \\frac{dP}{dt} = - \\frac{\\gamma P}{V_{gas}} A_{tube} v_{mag} \)</span></li>
                                     </ul>
                                 </li>
@@ -1083,29 +1083,7 @@ Lực đẩy tĩnh ép dòng nước qua lỗ diện tích \(A\) là \(F = \rho 
 
 
 
-
-<script src="test_ui.js"></script>
-<script type="module">
-    import init, { WasmCmaes } from './pkg/cmaes_wasm.js';
-
-    window.wasmInitDone = false;
-    window.WasmCmaes = WasmCmaes;
-
-    async function initWasm() {
-        await init();
-        window.wasmInitDone = true;
-    }
-
-    window.ensureWasmInitialized = async function() {
-        if (!window.wasmInitDone) {
-            await initWasm();
-        }
-    };
-
-    initWasm();
-</script>
-<script>
-
+    <script>
 
 // Hằng số vật lý chuẩn SI
 const Constants = {
@@ -1644,193 +1622,78 @@ function runSimUI() {
 }
 
 // --- SIMPLE RANDOM SEARCH OPTIMIZER (Replacing CMA-ES for JS) ---
-let isOptimizing = false;
-let optimizationTimeout = null;
+function optimizeRange() {
+    console.log("Optimizer Triggered");
 
-async function optimizeRange() {
-    if (isOptimizing) {
-        isOptimizing = false;
-        clearTimeout(optimizationTimeout);
-        document.querySelector('button[onclick="optimizeRange()"]').innerHTML = 'CHẠY TỐI ƯU HÓA CMA-ES';
-        document.querySelector('button[onclick="optimizeRange()"]').classList.remove('running');
-        setStatus("TỐI ƯU HÓA ĐÃ BỊ HỦY", false);
-        return;
-    }
-
-    await ensureWasmInitialized();
-    if (!wasmInitDone) return;
-
-    let unlocked = [];
-    document.querySelectorAll('.opt-lock').forEach(btn => {
-        if (btn.innerText === 'MỞ' || btn.innerText === '🔓') {
-            const inputEl = btn.previousElementSibling;
-            const inputId = inputEl.id;
-            if (!inputEl.disabled) {
-                unlocked.push({
-                    id: inputId,
-                    min: (inputEl.min !== '') ? parseFloat(inputEl.min) : 0,
-                    max: (inputEl.max !== '') ? parseFloat(inputEl.max) : 100,
-                    current: parseFloat(inputEl.value)
-                });
-            }
+    // Find all unlocked inputs
+    const inputs = document.querySelectorAll('#controls input[type="number"]');
+    const unlockedInputs = [];
+    inputs.forEach(input => {
+        const btn = input.nextElementSibling;
+        if (btn && btn.classList.contains('unlocked')) {
+            unlockedInputs.push(input);
         }
     });
 
-    if (unlocked.length === 0) {
-        setStatus("LỖI TỐI ƯU HÓA: CẦN MỞ KHÓA ÍT NHẤT 1 BIẾN", true);
+    if (unlockedInputs.length === 0) {
+        alert("Vui lòng mở khóa (MỞ) ít nhất một thông số để tối ưu hóa.");
         return;
     }
 
-    isOptimizing = true;
-    document.querySelector('button[onclick="optimizeRange()"]').innerHTML = '⏹ DỪNG TỐI ƯU';
-    document.querySelector('button[onclick="optimizeRange()"]').classList.add('running');
-    setStatus("ĐANG CHẠY CMA-ES...", false);
+    alert("Đang chạy thuật toán tối ưu hóa...");
 
-    const dim = unlocked.length;
-    const initialGuess = new Float64Array(dim);
+    // Simple random search since full CMA-ES in JS is complex and might freeze UI
+    // We will do 500 iterations of random mutations around current values
+    let bestRange = -1;
+    let bestParams = {};
 
-    for (let i = 0; i < dim; i++) {
-        let normalized = (unlocked[i].current - unlocked[i].min) / (unlocked[i].max - unlocked[i].min);
-        normalized = Math.max(0.01, Math.min(0.99, normalized));
-        initialGuess[i] = normalized;
+    // Save original state
+    const originalParams = {};
+    unlockedInputs.forEach(input => {
+        originalParams[input.id] = parseFloat(input.value);
+        bestParams[input.id] = parseFloat(input.value);
+    });
+
+    // Run baseline
+    const baselineResult = run_simulation();
+    if (!baselineResult.isError) {
+        bestRange = baselineResult.range;
     }
 
-    const sigma = 0.2;
-    const maxIterations = 200;
-
-    let es;
-    try {
-        es = new WasmCmaes(initialGuess, sigma, { max_iterations: maxIterations, cov_model: 'full' });
-    } catch (e) {
-        console.error("Failed to init CMA-ES:", e);
-        setStatus("LỖI KHỞI TẠO CMA-ES", true);
-        isOptimizing = false;
-        document.querySelector('button[onclick="optimizeRange()"]').innerHTML = 'CHẠY TỐI ƯU HÓA CMA-ES';
-        document.querySelector('button[onclick="optimizeRange()"]').classList.remove('running');
-        return;
-    }
-
-    const popsize = es.population_size();
-    let currentIter = 0;
-
-    // Cache base inputs to avoid DOM reading in loop
-    window.baseSimInput = {
-        "in-v-bottle": parseFloat(document.getElementById("in-v-bottle").value) || 0,
-        "in-l-rocket": parseFloat(document.getElementById("in-l-rocket").value) || 0,
-        "in-d-body": parseFloat(document.getElementById("in-d-body").value) || 0,
-        "in-m-empty": parseFloat(document.getElementById("in-m-empty").value) || 0,
-        "in-m-ballast": parseFloat(document.getElementById("in-m-ballast").value) || 0,
-        "in-fin-root": parseFloat(document.getElementById("in-fin-root").value) || 0,
-        "in-fin-tip": parseFloat(document.getElementById("in-fin-tip").value) || 0,
-        "in-fin-span": parseFloat(document.getElementById("in-fin-span").value) || 0,
-        "in-water-ratio": parseFloat(document.getElementById("in-water-ratio").value) || 0,
-        "in-pressure": parseFloat(document.getElementById("in-pressure").value) || 0,
-        "in-burst": parseFloat(document.getElementById("in-burst").value) || 0,
-        "in-mass-salt": parseFloat(document.getElementById("in-mass-salt").value) || 0,
-        "in-vol-vinegar": parseFloat(document.getElementById("in-vol-vinegar").value) || 0,
-        "in-acid-conc": parseFloat(document.getElementById("in-acid-conc").value) || 0,
-        "in-gas-eff": parseFloat(document.getElementById("in-gas-eff").value) || 0,
-        "in-popoff": parseFloat(document.getElementById("in-popoff").value) || 0,
-        "in-d-nozzle": parseFloat(document.getElementById("in-d-nozzle").value) || 0,
-        "in-l-tube": parseFloat(document.getElementById("in-l-tube").value) || 0,
-        "in-d-tube": parseFloat(document.getElementById("in-d-tube").value) || 0,
-        "in-angle": parseFloat(document.getElementById("in-angle").value) || 0,
-        "in-cd": parseFloat(document.getElementById("in-cd").value) || 0,
-        "in-temp": parseFloat(document.getElementById("in-temp").value) || 0
-    };
-
-    function optimizationStep() {
-        if (!isOptimizing || es.should_stop() || currentIter >= maxIterations) {
-            isOptimizing = false;
-            document.querySelector('button[onclick="optimizeRange()"]').innerHTML = 'CHẠY TỐI ƯU HÓA CMA-ES';
-            document.querySelector('button[onclick="optimizeRange()"]').classList.remove('running');
-
-            const bestResult = es.result();
-            const bestCandidate = bestResult.best_x();
-
-            for (let i = 0; i < dim; i++) {
-                let realVal = unlocked[i].min + bestCandidate[i] * (unlocked[i].max - unlocked[i].min);
-                document.getElementById(unlocked[i].id).value = realVal;
-            }
-
-            runSimUI();
-            setStatus("ĐÃ TÌM THẤY TẦM XA TỐI ƯU BẰNG CMA-ES", false);
-            return;
-        }
-
-        const pop = [];
-        for (let i = 0; i < popsize; i++) {
-            pop.push(es.ask());
-        }
-
-        const fitness = new Float64Array(popsize);
-        for (let c = 0; c < popsize; c++) {
-            const candidate = pop[c];
+    const iterations = 500;
+    for (let i = 0; i < iterations; i++) {
+        // Mutate unlocked parameters
+        unlockedInputs.forEach(input => {
+            const currentVal = originalParams[input.id];
+            // Random mutation +/- 20%
+            const mutation = currentVal * 0.2 * (Math.random() * 2 - 1);
+            let newVal = currentVal + mutation;
 
             // Constrain
-            for (let i = 0; i < dim; i++) {
-                if (candidate[i] < 0) candidate[i] = 0;
-                if (candidate[i] > 1) candidate[i] = 1;
-            }
+            if (newVal < 0) newVal = 0.001;
 
-            let candidateReal = new Float64Array(dim);
-            for (let i = 0; i < dim; i++) {
-                candidateReal[i] = unlocked[i].min + candidate[i] * (unlocked[i].max - unlocked[i].min);
-            }
+            input.value = newVal.toFixed(3);
+        });
 
-            fitness[c] = objectiveFunction(unlocked, candidateReal);
+        // Test new params
+        const result = run_simulation();
+        if (!result.isError && result.range > bestRange) {
+            bestRange = result.range;
+            unlockedInputs.forEach(input => {
+                bestParams[input.id] = parseFloat(input.value);
+            });
         }
-
-        try {
-            for (let i = 0; i < popsize; i++) {
-                es.tell(pop[i], fitness[i]);
-            }
-        } catch(e) {
-            console.error("CMA-ES Tell Error:", e);
-        }
-
-        currentIter++;
-        setStatus(`ĐANG CHẠY CMA-ES... (VÒNG LẶP ${currentIter}/${maxIterations})`, false);
-
-        optimizationTimeout = setTimeout(optimizationStep, 0);
     }
 
-    optimizationStep();
+    // Apply best params
+    unlockedInputs.forEach(input => {
+        input.value = bestParams[input.id].toFixed(3);
+    });
+
+    // Final run to update UI
+    runSimUI();
+    alert(`Tối ưu hóa hoàn tất. Tầm xa lớn nhất tìm thấy: ${bestRange.toFixed(2)} m`);
 }
-
-function objectiveFunction(unlocked, candidateReal) {
-    if (!unlocked) {
-        runSimUI();
-        if (!window.result_cache) return 0;
-        return -window.result_cache.range;
-    }
-
-    // Instead of run_simulation which touches DOM, do it manually
-    let currentInput = Object.assign({}, window.baseSimInput);
-    for (let i=0; i<unlocked.length; i++) {
-        currentInput[unlocked[i].id] = candidateReal[i];
-    }
-
-    // We don't have wasmEngine here directly unless we import it or it's global
-    // But run_simulation does essentially this:
-    // Actually, `run_simulation()` uses `calculatePhysics()`.
-
-    // The previous JS implementation reads from DOM directly inside `run_simulation`.
-    // Since we want to AVOID DOM thrashing, we MUST write values to a mock DOM or just
-    // inject them temporarily into the real DOM because `calculatePhysics` isn't designed to take arguments.
-    // Let's just temporarily overwrite DOM since it's the safest way to guarantee physics match,
-    // BUT we won't trigger `runSimUI()` so the chart doesn't redraw 500 times.
-
-    for (let i=0; i<unlocked.length; i++) {
-        document.getElementById(unlocked[i].id).value = candidateReal[i];
-    }
-
-    let result = run_simulation();
-    if (!result || result.isError) return 0;
-
-    return -result.range;
-}
-
 
 // --- CHART.JS INTEGRATION ---
 
