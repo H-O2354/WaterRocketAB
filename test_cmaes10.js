@@ -10,19 +10,20 @@ const { chromium } = require('playwright');
 
     await page.waitForTimeout(1000);
 
-    await page.evaluate(() => {
+    const optimizePromise = page.evaluate(async () => {
         // Unlock some
         document.getElementById('in-v-bottle').nextElementSibling.click();
         document.getElementById('in-m-empty').nextElementSibling.click();
-        document.querySelector('button[onclick="optimizeRange()"]').click();
+
+        // Use a flag to avoid alert freezing testing
+        window.alert = console.log;
+
+        await optimizeRange();
     });
 
     console.log("Optimization started...");
 
-    await page.waitForFunction(() => {
-        const btn = document.querySelector('button[onclick="optimizeRange()"]');
-        return btn && btn.innerText.includes('CHẠY');
-    }, { timeout: 120000 });
+    await optimizePromise;
 
     console.log("Optimization finished. Getting values:");
     const inputs = await page.$$('input[type="number"]');

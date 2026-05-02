@@ -1274,7 +1274,7 @@ class RocketSimulation {
         this.engine = new DerivativeEngine(params);
     }
 
-    run() {
+    run(fastMode = false) {
         let res = {
             isError: false,
             sys_status: "BÌNH THƯỜNG",
@@ -1368,7 +1368,7 @@ class RocketSimulation {
             if (state.y > apogee) apogee = state.y;
             if (v_mag > max_v) max_v = v_mag;
 
-            if (log_counter % log_freq === 0) {
+            if (!fastMode && log_counter % log_freq === 0) {
                 res.t.push(current_t);
                 res.x.push(state.x);
                 res.y.push(state.y);
@@ -1403,9 +1403,9 @@ class RocketSimulation {
     }
 }
 
-function run_simulation(input) {
+function run_simulation(input, fastMode = false) {
     const sim = new RocketSimulation(input);
-    return sim.run();
+    return sim.run(fastMode);
 }
 
 
@@ -1621,9 +1621,254 @@ function runSimUI() {
     }
 }
 
-// --- SIMPLE RANDOM SEARCH OPTIMIZER (Replacing CMA-ES for JS) ---
-function optimizeRange() {
-    console.log("Optimizer Triggered");
+/**
+ * Optimized Matrix-Free Covariance Matrix Adaptation Evolution Strategy (MF-CMA-ES)
+ * Employs zero-allocation TypedArrays, flattened 1D archives, and PPMF step-size adaptation.
+ */
+class MFCMAES {
+    /**
+     * @param {number} dimension - The dimensionality of the objective function (n)
+     * @param {Float64Array} initialMean - The starting coordinate vector
+     * @param {number} initialStepSize - Initial global variance (sigma)
+     */
+    constructor(dimension, initialMean, initialStepSize) {
+        this.n = dimension;
+        this.sigma = initialStepSize;
+
+        // --- 1. Parameter Heuristics Initialization ---
+        this.lambda = Math.floor(4 + 3 * Math.log(this.n));
+        this.mu = Math.floor(this.lambda / 2);
+        this.h = Math.floor(20 + 1.4 * this.n); // History Window size
+
+        // Recombination weights
+        this.weights = new Float64Array(this.mu);
+        let weightSum = 0;
+        let weightSumSquare = 0;
+        const logMuPlusHalf = Math.log(this.mu + 0.5);
+        for (let i = 0; i < this.mu; i++) {
+            this.weights[i] = logMuPlusHalf - Math.log(i + 1);
+            weightSum += this.weights[i];
+        }
+        // Normalize weights
+        for (let i = 0; i < this.mu; i++) {
+            this.weights[i] /= weightSum;
+            weightSumSquare += this.weights[i] * this.weights[i];
+        }
+
+        this.muEff = 1 / weightSumSquare;
+
+        // Adaptation learning rates
+        this.cc = (4 + this.muEff / this.n) / (this.n + 4 + 2 * this.muEff / this.n);
+        this.c1 = 2 / ((this.n + 1.3) * (this.n + 1.3) + this.muEff);
+        this.cmu = Math.min(1 - this.c1, 2 * (this.muEff - 2 + 1 / this.muEff) / ((this.n + 2) * (this.n + 2) + this.muEff));
+        this.ccov = this.c1 + this.cmu;
+
+        // PPMF specific parameters
+        this.pTarget = 0.2;
+        this.dSigma = 1.0 + 2 * Math.max(0, Math.sqrt((this.muEff - 1) / (this.n + 1)) - 1) + this.cc;
+        this.cSigma = (this.muEff + 2) / (this.n + this.muEff + 5);
+
+        // --- 2. Flat Memory Arena Allocation (Zero-Allocation Paradigm) ---
+        // We flatten multidimensional matrices into 1D Float64Arrays for cache-line locality
+
+        this.m = new Float64Array(initialMean);
+        this.pc = new Float64Array(this.n);
+        this.delta = new Float64Array(this.n);
+
+        // Offspring data
+        this.x = new Float64Array(this.lambda * this.n);
+        this.d = new Float64Array(this.lambda * this.n);
+        this.fitness = new Float64Array(this.lambda);
+        this.indices = new Int32Array(this.lambda);
+
+        // The Archive: stores mu difference vectors + 1 evolution path per generation
+        // Size: h * (mu + 1) * n
+        this.archiveVectorsPerGen = this.mu + 1;
+        this.archiveSize = this.h * this.archiveVectorsPerGen * this.n;
+        this.archive = new Float64Array(this.archiveSize);
+
+        this.generation = 0;
+
+        // Random Number Generator State
+        this.hasSpareNormal = false;
+        this.spareNormal = 0.0;
+    }
+
+    /**
+     * Box-Muller Transform for Standard Normal Distribution N(0,1)
+     * Caches the second generated value to reduce trigonometric operations.
+     */
+    randomNormal() {
+        if (this.hasSpareNormal) {
+            this.hasSpareNormal = false;
+            return this.spareNormal;
+        }
+        let u = 0, v = 0;
+        while (u === 0) u = Math.random(); // Prevent Math.log(0)
+        while (v === 0) v = Math.random();
+
+        const mag = Math.sqrt(-2.0 * Math.log(u));
+        const z0 = mag * Math.cos(2.0 * Math.PI * v);
+        const z1 = mag * Math.sin(2.0 * Math.PI * v);
+
+        this.spareNormal = z1;
+        this.hasSpareNormal = true;
+        return z0;
+    }
+
+    /**
+     * Main algorithmic evaluation loop executed per generation.
+     * @param {Function} objectiveFunction - Callback function to evaluate a given Float64Array coordinate
+     */
+    step(objectiveFunction) {
+        // --- 1. Evaluate Previous Mean for PPMF Rule ---
+        // Using current mean m before it is updated
+        const fitnessPrevMean = objectiveFunction(this.m);
+
+        // Calculate available history bound (prevent accessing empty archive at startup)
+        const activeHistory = Math.min(this.generation, this.h);
+
+        // --- 2. Sample and Generate Offspring (Matrix-Free Phase) ---
+        for (let i = 0; i < this.lambda; i++) {
+            const baseIndexD = i * this.n;
+            const baseIndexX = i * this.n;
+
+            // Clear difference vector buffer for this offspring
+            for (let dim = 0; dim < this.n; dim++) {
+                this.d[baseIndexD + dim] = 0.0;
+            }
+
+            // Implement Formula (15): Sample from the archive
+            if (activeHistory > 0) {
+                // Determine the starting pointer in the ring buffer
+                for (let hOffset = 1; hOffset <= activeHistory; hOffset++) {
+                    const tau = this.generation - hOffset;
+                    const decayTerm = Math.pow(1 - this.ccov, hOffset / 2.0);
+
+                    // The physical memory location of generation tau in the ring buffer
+                    const archGenOffset = (tau % this.h) * this.archiveVectorsPerGen * this.n;
+
+                    // Recombination of past difference vectors
+                    const sqrtCmu = Math.sqrt(this.cmu);
+                    for (let j = 0; j < this.mu; j++) {
+                        const archVecOffset = archGenOffset + j * this.n;
+                        const weightFactor = sqrtCmu * Math.sqrt(this.weights[j]);
+                        const randVal = this.randomNormal(); // N_j(0,1)
+                        const multiplier = decayTerm * weightFactor * randVal;
+
+                        // Vector addition loop
+                        for (let dim = 0; dim < this.n; dim++) {
+                            this.d[baseIndexD + dim] += multiplier * this.archive[archVecOffset + dim];
+                        }
+                    }
+
+                    // Addition of past evolution path (pc is stored at index `mu`)
+                    const archPcOffset = archGenOffset + this.mu * this.n;
+                    const sqrtC1 = Math.sqrt(this.c1);
+                    const randPc = this.randomNormal(); // N_p(0,1)
+                    const pcMultiplier = decayTerm * sqrtC1 * randPc;
+
+                    for (let dim = 0; dim < this.n; dim++) {
+                        this.d[baseIndexD + dim] += pcMultiplier * this.archive[archPcOffset + dim];
+                    }
+                }
+            }
+
+            // Isotropic noise addition
+            const baseDecay = Math.pow(1 - this.ccov, activeHistory / 2.0);
+            for (let dim = 0; dim < this.n; dim++) {
+                this.d[baseIndexD + dim] += baseDecay * this.randomNormal();
+            }
+
+            // Compute actual coordinates X = m + sigma * D
+            // And evaluate objective function
+            const tempX = new Float64Array(this.n); // Transient for objective function isolation
+            for (let dim = 0; dim < this.n; dim++) {
+                this.x[baseIndexX + dim] = this.m[dim] + this.sigma * this.d[baseIndexD + dim];
+                tempX[dim] = this.x[baseIndexX + dim];
+            }
+
+            this.fitness[i] = objectiveFunction(tempX);
+            this.indices[i] = i; // Reset index for sorting
+        }
+
+        // --- 3. Sorting via Indices (Avoids heavy array copying) ---
+        this.indices.sort((a, b) => this.fitness[a] - this.fitness[b]);
+
+        // --- 4. Rank-mu Update & Mean Shift ---
+        // Reset delta buffer
+        for (let dim = 0; dim < this.n; dim++) {
+            this.delta[dim] = 0.0;
+        }
+
+        // Compute Delta = sum(w_i * d_best_i)
+        for (let i = 0; i < this.mu; i++) {
+            const bestIndex = this.indices[i];
+            const weight = this.weights[i];
+            const baseIndexD = bestIndex * this.n;
+
+            for (let dim = 0; dim < this.n; dim++) {
+                this.delta[dim] += weight * this.d[baseIndexD + dim];
+            }
+        }
+
+        // Update Mean m(t+1) = m(t) + sigma * delta
+        for (let dim = 0; dim < this.n; dim++) {
+            this.m[dim] += this.sigma * this.delta[dim];
+        }
+
+        // --- 5. Evolution Path Update ---
+        // p_c(t+1) = (1 - cc)*p_c(t) + sqrt(muEff * cc * (2 - cc)) * delta
+        const pcCoeff = Math.sqrt(this.muEff * this.cc * (2 - this.cc));
+        for (let dim = 0; dim < this.n; dim++) {
+            this.pc[dim] = (1 - this.cc) * this.pc[dim] + pcCoeff * this.delta[dim];
+        }
+
+        // --- 6. Archive Storage ---
+        // Store the top mu difference vectors and the new evolution path into the ring buffer
+        const genOffset = (this.generation % this.h) * this.archiveVectorsPerGen * this.n;
+
+        for (let i = 0; i < this.mu; i++) {
+            const bestIndex = this.indices[i];
+            const baseIndexD = bestIndex * this.n;
+            const targetOffset = genOffset + i * this.n;
+
+            // Fast contiguous copy via TypedArray.set()
+            this.archive.set(this.d.subarray(baseIndexD, baseIndexD + this.n), targetOffset);
+        }
+
+        // Store pc at the end of the generation's block
+        const targetPcOffset = genOffset + this.mu * this.n;
+        this.archive.set(this.pc, targetPcOffset);
+
+        // --- 7. PPMF Step-Size Adaptation ---
+        // Calculate success probability (how many current offspring beat the previous mean)
+        let successCount = 0;
+        for (let i = 0; i < this.lambda; i++) {
+            if (this.fitness[i] < fitnessPrevMean) {
+                successCount++;
+            }
+        }
+        const ps = successCount / this.lambda;
+
+        // Update global step size using exponential smoothing formula
+        this.sigma *= Math.exp((this.cSigma / this.dSigma) * ((ps - this.pTarget) / (1 - this.pTarget)));
+
+        // Advance to next generation
+        this.generation++;
+    }
+
+    /**
+     * Returns the current best approximation of the optimum
+     */
+    getBestSolution() {
+        return this.m;
+    }
+}
+
+// --- CMA-ES OPTIMIZER ---
+async function optimizeRange() {
+    console.log("CMA-ES Optimizer Triggered");
 
     // Find all unlocked inputs
     const inputs = document.querySelectorAll('#controls input[type="number"]');
@@ -1631,7 +1876,12 @@ function optimizeRange() {
     inputs.forEach(input => {
         const btn = input.nextElementSibling;
         if (btn && btn.classList.contains('unlocked')) {
-            unlockedInputs.push(input);
+            unlockedInputs.push({
+                element: input,
+                min: parseFloat(input.min),
+                max: parseFloat(input.max),
+                id: input.id
+            });
         }
     });
 
@@ -1640,59 +1890,128 @@ function optimizeRange() {
         return;
     }
 
-    alert("Đang chạy thuật toán tối ưu hóa...");
+    const n = unlockedInputs.length;
+    console.log(`Optimizing ${n} variables`);
 
-    // Simple random search since full CMA-ES in JS is complex and might freeze UI
-    // We will do 500 iterations of random mutations around current values
-    let bestRange = -1;
-    let bestParams = {};
+    // Normalized [0, 1] bounds mapping functions
+    const normalize = (val, min, max) => (val - min) / (max - min);
+    const denormalize = (norm, min, max) => min + norm * (max - min);
 
-    // Save original state
-    const originalParams = {};
-    unlockedInputs.forEach(input => {
-        originalParams[input.id] = parseFloat(input.value);
-        bestParams[input.id] = parseFloat(input.value);
-    });
-
-    // Run baseline
-    const baselineResult = run_simulation();
-    if (!baselineResult.isError) {
-        bestRange = baselineResult.range;
+    // Initial mean vector
+    const initialMean = new Float64Array(n);
+    for (let i = 0; i < n; i++) {
+        const val = parseFloat(unlockedInputs[i].element.value);
+        initialMean[i] = normalize(val, unlockedInputs[i].min, unlockedInputs[i].max);
     }
 
-    const iterations = 500;
-    for (let i = 0; i < iterations; i++) {
-        // Mutate unlocked parameters
-        unlockedInputs.forEach(input => {
-            const currentVal = originalParams[input.id];
-            // Random mutation +/- 20%
-            const mutation = currentVal * 0.2 * (Math.random() * 2 - 1);
-            let newVal = currentVal + mutation;
+    // Initialize CMA-ES with initial sigma = 0.3 (covering 30% of parameter space)
+    const cmaes = new MFCMAES(n, initialMean, 0.3);
 
-            // Constrain
-            if (newVal < 0) newVal = 0.001;
+    // Prepare a base input object to avoid re-reading DOM every evaluation
+    const baseInput = {
+        in_mode: document.getElementById('in-mode').value,
+        in_v_bottle: parseFloat(document.getElementById('in-v-bottle').value),
+        in_l_rocket: parseFloat(document.getElementById('in-l-rocket').value),
+        in_fin_root: parseFloat(document.getElementById('in-fin-root').value),
+        in_fin_tip: parseFloat(document.getElementById('in-fin-tip').value),
+        in_fin_span: parseFloat(document.getElementById('in-fin-span').value),
+        in_d_body: parseFloat(document.getElementById('in-d-body').value),
+        in_m_empty: parseFloat(document.getElementById('in-m-empty').value),
+        in_m_ballast: parseFloat(document.getElementById('in-m-ballast').value),
+        in_water_ratio: parseFloat(document.getElementById('in-water-ratio').value),
+        in_pressure: parseFloat(document.getElementById('in-pressure').value),
+        in_burst: parseFloat(document.getElementById('in-burst').value),
+        in_salt_type: document.getElementById('in-salt-type').value,
+        in_mass_salt: parseFloat(document.getElementById('in-mass-salt').value),
+        in_vol_vinegar: parseFloat(document.getElementById('in-vol-vinegar').value),
+        in_acid_conc: parseFloat(document.getElementById('in-acid-conc').value),
+        in_gas_eff: parseFloat(document.getElementById('in-gas-eff').value),
+        in_popoff: parseFloat(document.getElementById('in-popoff').value),
+        in_d_nozzle: parseFloat(document.getElementById('in-d-nozzle').value),
+        in_l_tube: parseFloat(document.getElementById('in-l-tube').value),
+        in_d_tube: parseFloat(document.getElementById('in-d-tube').value),
+        in_angle: parseFloat(document.getElementById('in-angle').value),
+        in_cd: parseFloat(document.getElementById('in-cd').value),
+        in_temp: parseFloat(document.getElementById('in-temp').value),
+        in_env: parseFloat(document.getElementById('in-env').value)
+    };
 
-            input.value = newVal.toFixed(3);
-        });
+    // Objective function (minimize negative range)
+    const evaluate = (normX) => {
+        let penalty = 0;
+        const simInput = { ...baseInput };
 
-        // Test new params
-        const result = run_simulation();
-        if (!result.isError && result.range > bestRange) {
-            bestRange = result.range;
-            unlockedInputs.forEach(input => {
-                bestParams[input.id] = parseFloat(input.value);
-            });
+        for (let i = 0; i < n; i++) {
+            let valNorm = normX[i];
+            // Out of bounds penalty
+            if (valNorm < 0) {
+                penalty += (0 - valNorm) * 1000;
+                valNorm = 0;
+            } else if (valNorm > 1) {
+                penalty += (valNorm - 1) * 1000;
+                valNorm = 1;
+            }
+
+            simInput[unlockedInputs[i].id] = denormalize(valNorm, unlockedInputs[i].min, unlockedInputs[i].max);
+        }
+
+        const result = run_simulation(simInput, true); // true = fastMode
+
+        if (result.isError) {
+            return 10000 + penalty; // Heavy penalty for exploding rockets/errors
+        }
+
+        return -result.val_range + penalty;
+    };
+
+    const maxGenerations = 100;
+    setStatus(`ĐANG TỐI ƯU HÓA CMA-ES...`, false);
+
+    let bestOverallScore = Infinity;
+    let bestOverallParams = null;
+
+    const startTime = performance.now();
+
+    for (let gen = 0; gen < maxGenerations; gen++) {
+        cmaes.step(evaluate);
+
+        const currentBestScore = evaluate(cmaes.getBestSolution());
+        if (currentBestScore < bestOverallScore) {
+            bestOverallScore = currentBestScore;
+            bestOverallParams = new Float64Array(cmaes.getBestSolution());
+        }
+
+        // Update UI every 5 generations to provide "Time estimate" & responsiveness
+        if (gen % 5 === 0 || gen === maxGenerations - 1) {
+            const elapsedStr = ((performance.now() - startTime) / 1000).toFixed(1);
+            setStatus(`ĐANG TỐI ƯU HÓA CMA-ES: Thế hệ ${gen + 1}/${maxGenerations} (${elapsedStr}s) - MAX RANGE TẠM TÍNH: ${(-bestOverallScore).toFixed(2)}m`, false);
+            await new Promise(r => setTimeout(r, 0)); // Yield to main thread
         }
     }
 
-    // Apply best params
-    unlockedInputs.forEach(input => {
-        input.value = bestParams[input.id].toFixed(3);
-    });
+    const elapsedTotal = ((performance.now() - startTime) / 1000).toFixed(1);
 
-    // Final run to update UI
+    // Apply best parameters to UI
+    for (let i = 0; i < n; i++) {
+        let valNorm = bestOverallParams[i];
+        if (valNorm < 0) valNorm = 0;
+        if (valNorm > 1) valNorm = 1;
+        const finalVal = denormalize(valNorm, unlockedInputs[i].min, unlockedInputs[i].max);
+
+        // Format based on step logic or just 3 decimals
+        let step = unlockedInputs[i].element.getAttribute('step');
+        if (step) {
+             const decs = (step.split('.')[1] || []).length;
+             unlockedInputs[i].element.value = finalVal.toFixed(decs);
+        } else {
+             unlockedInputs[i].element.value = finalVal.toFixed(2);
+        }
+    }
+
+    // Final run to update telemetry UI and charts
     runSimUI();
-    alert(`Tối ưu hóa hoàn tất. Tầm xa lớn nhất tìm thấy: ${bestRange.toFixed(2)} m`);
+
+    alert(`Tối ưu hóa CMA-ES hoàn tất trong ${elapsedTotal}s. Tầm xa lớn nhất tìm thấy: ${(-bestOverallScore).toFixed(2)} m`);
 }
 
 // --- CHART.JS INTEGRATION ---
