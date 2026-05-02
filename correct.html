@@ -1,0 +1,1211 @@
+commit 331591c05391464e4b597514e8dff77d750f699f
+Author: google-labs-jules[bot] <161369871+google-labs-jules[bot]@users.noreply.github.com>
+Date:   Fri May 1 15:14:21 2026 +0000
+
+    chore: fixed latex and input limits
+
+diff --git a/index.html b/index.html
+index 5e75d7e..3b1772c 100644
+--- a/index.html
++++ b/index.html
+@@ -564,56 +564,56 @@ fieldset {
+                 <div class="input-group">
+                     <label>Thể tích chai (L) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-v-bottle" value="0.5" step="0.1" onchange="runSimUI()">
++                        <input type="number" id="in-v-bottle" value="0.5" step="0.1" min="0.1" max="100.0" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Chiều dài tổng thể (mm) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-l-rocket" value="60" onchange="runSimUI()">
++                        <input type="number" id="in-l-rocket" value="60" min="10" max="5000" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Đường kính thân (mm) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-d-body" value="65" onchange="runSimUI()">
++                        <input type="number" id="in-d-body" value="65" min="20" max="500" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Khối lượng rỗng (kg) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-m-empty" value="0.1" step="0.01" onchange="runSimUI()">
++                        <input type="number" id="in-m-empty" value="0.1" step="0.01" min="0.01" max="20.0" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Khối lượng tạ mũi (kg) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-m-ballast" value="0.005" step="0.01" onchange="runSimUI()">
++                        <input type="number" id="in-m-ballast" value="0.005" step="0.01" min="0" max="10.0" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Chiều dài chân cánh (mm) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-fin-root" value="25" onchange="runSimUI()">
++                        <input type="number" id="in-fin-root" value="25" min="5" max="500" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Chiều dài đỉnh cánh (mm) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-fin-tip" value="25" onchange="runSimUI()">
++                        <input type="number" id="in-fin-tip" value="25" min="5" max="500" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Sải cánh (mm) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-fin-span" value="25" onchange="runSimUI()">
++                        <input type="number" id="in-fin-span" value="25" min="5" max="500" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+@@ -624,21 +624,21 @@ fieldset {
+                 <div class="input-group">
+                     <label>Tỷ lệ đổ nước (%) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-water-ratio" value="33" onchange="runSimUI()">
++                        <input type="number" id="in-water-ratio" value="33" min="0" max="99" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Áp suất bơm ban đầu (PSI) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-pressure" value="60" onchange="runSimUI()">
++                        <input type="number" id="in-pressure" value="60" min="10" max="500" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Áp suất nổ giới hạn (PSI) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-burst" value="120" onchange="runSimUI()">
++                        <input type="number" id="in-burst" value="120" min="30" max="1000" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+@@ -656,35 +656,35 @@ fieldset {
+                 <div class="input-group">
+                     <label>Khối lượng muối (g) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-mass-salt" value="7.6" onchange="runSimUI()">
++                        <input type="number" id="in-mass-salt" value="7.6" min="1" max="1000" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Thể tích giấm (ml) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-vol-vinegar" value="109" onchange="runSimUI()">
++                        <input type="number" id="in-vol-vinegar" value="109" min="10" max="5000" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Nồng độ Acid (% m/v) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-acid-conc" value="5" onchange="runSimUI()">
++                        <input type="number" id="in-acid-conc" value="5" min="1" max="100" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Hiệu suất sinh khí (%) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-gas-eff" value="85" onchange="runSimUI()">
++                        <input type="number" id="in-gas-eff" value="85" min="10" max="100" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Áp suất bung nút (PSI) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-popoff" value="70" onchange="runSimUI()">
++                        <input type="number" id="in-popoff" value="70" min="10" max="500" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+@@ -695,21 +695,21 @@ fieldset {
+                 <div class="input-group">
+                     <label>Đường kính Vòi phun (mm) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-d-nozzle" value="21" onchange="runSimUI()">
++                        <input type="number" id="in-d-nozzle" value="21" min="5" max="200" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Chiều dài ống phóng (m) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-l-tube" value="0.5" step="0.1" onchange="runSimUI()">
++                        <input type="number" id="in-l-tube" value="0.5" step="0.1" min="0" max="10.0" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Đường kính ngoài ống phóng (mm) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-d-tube" value="21" onchange="runSimUI()">
++                        <input type="number" id="in-d-tube" value="21" min="5" max="200" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+@@ -726,21 +726,21 @@ fieldset {
+                 <div class="input-group">
+                     <label>Góc phóng (Độ) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-angle" value="45" onchange="runSimUI()">
++                        <input type="number" id="in-angle" value="45" min="0" max="90" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Hệ số cản không khí (Cd) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-cd" value="0.45" step="0.01" onchange="runSimUI()">
++                        <input type="number" id="in-cd" value="0.45" step="0.01" min="0.01" max="5.0" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+                 <div class="input-group">
+                     <label>Nhiệt độ không khí (C) </label>
+                     <div class="input-row">
+-                        <input type="number" id="in-temp" value="27" onchange="runSimUI()">
++                        <input type="number" id="in-temp" value="27" min="-50" max="100" onchange="runSimUI()">
+                         <button class="opt-lock" onclick="toggleLock(this)">KHÓA</button>
+                     </div>
+                 </div>
+@@ -999,989 +999,65 @@ Lực đẩy tĩnh ép dòng nước qua lỗ diện tích \(A\) là \(F = \rho
+                 <li>
+                     <span class="tree-title">1. GIẢI NÉN VECTOR TRẠNG THÁI & THAM SỐ</span>
+                     <ul>
+-                        <li>Trích xuất biến thiên (Y): <span class="tree-math">\( x, y, v_x, v_y, m_w, P \)</span></li>
+-                        <li>Trích xuất hằng số (params): <span class="tree-math">\( C_d, A_c, A_e, \\rho_w, \\rho_{air}, P_{atm}, g, V_0 \\dots \)</span></li>
++                        <li>Trích xuất biến thiên (Y): x, y, vx, vy, m_w, P</li>
++                        <li>Trích xuất hằng số (params): C_d, A_c, A_e, rho_w, rho_air, P_atm, g, V_0 ...</li>
+                     </ul>
+                 </li>
+                 <li>
+                     <span class="tree-title">2. KHÍ ĐỘNG HỌC & LỰC CẢN (Fd)</span>
+                     <ul>
+-                        <li><span class="tree-math">\( v_{mag} = \\sqrt{v_x^2 + v_y^2} \)</span></li>
+-                        <li>Xác định hướng: <span class="tree-math">\( \\cos(\\theta) = \\frac{v_x}{v_{mag}}, \\sin(\\theta) = \\frac{v_y}{v_{mag}} \)</span></li>
+-                        <li>Tính độ ổn định Static Margin: <span class="tree-math">\( sm = \\frac{CoP - CoM}{d_{body}} \)</span></li>
+-                        <li>Hệ số cản hiệu dụng: <span class="tree-math">\( C_{d,eff} = C_d \\cdot WOBBLE\\_FACTOR \)</span></li>
+-                        <li><span class="tree-math">\( F_d = \\frac{1}{2} \\rho_{air} C_{d,eff} A_c v_{mag}^2 \)</span></li>
++                        <li>Xác định hướng và độ lớn vận tốc</li>
++                        <li>Tính độ ổn định Static Margin</li>
++                        <li>Hệ số cản hiệu dụng (WOBBLE_FACTOR)</li>
++                        <li>Tính lực cản F_d</li>
+                     </ul>
+                 </li>
+                 <li>
+                     <span class="tree-title">3. BIẾN DẠNG VỎ CHAI (PET Elasticity)</span>
+                     <ul>
+-                        <li>Gia tốc dọc trục: <span class="tree-math">\( a_{longitudinal} = a_{prev,x}\\cos(\\theta) + (a_{prev,y}+g)\\sin(\\theta) \)</span></li>
+-                        <li>Độ phình Hooke: <span class="tree-math">\( dV_{elastic} = V_0 (P - P_{atm}) \\frac{D}{2 E t_{wall}} \)</span></li>
++                        <li>Tính gia tốc dọc trục</li>
++                        <li>Độ phình Hooke</li>
+                     </ul>
+                 </li>
+                 <li>
+                     <span class="tree-title">4. BỘ ĐỊNH TUYẾN LỰC ĐẨY (MAIN PHASE TREE)</span>
+                     <ul>
+                         <li>
+-                            <span class="tree-title">[PHA A]: CÒN NƯỚC (if \( m_w > 0 \))</span>
++                            <span class="tree-title">[PHA A]: CÒN NƯỚC (if m_w > 0)</span>
+                             <ul>
+-                                <li><strong>A1: Trong ống phóng</strong>
+-                                    <ul>
+-                                        <li>Lực ma sát O-ring: <span class="tree-math">\( F_{friction} = P_{contact} \\cdot A_{contact} \\cdot \\mu \)</span></li>
+-                                        <li><span class="tree-math">\( Thrust = (P - P_{atm})A_{tube} - F_{friction} \)</span></li>
+-                                        <li><span class="tree-math">\( \\frac{dP}{dt} = - \\frac{\\gamma P}{V_{gas}} A_{tube} v_{mag} \)</span></li>
+-                                    </ul>
+-                                </li>
+-                                <li><strong>A2: Đã rời ống phóng</strong>
+-                                    <ul>
+-                                        <li>Áp suất đáy: <span class="tree-math">\( P_{bottom} = (P - P_{atm}) + \\rho_w a_{longitudinal} h_{water} \)</span></li>
+-                                        <li><span class="tree-math">\( v_e = \\sqrt{\\frac{2 P_{bottom}}{\\rho_w}} \)</span></li>
+-                                        <li><span class="tree-math">\( \\frac{dm_w}{dt} = -C_{d,nozzle} A_e \\rho_w v_e \)</span></li>
+-                                        <li><span class="tree-math">\( Thrust = \\left|\\frac{dm_w}{dt}\\right| v_e \)</span></li>
+-                                    </ul>
+-                                </li>
+-                                <li><strong>Nhiệt Động Học Pha A</strong>
+-                                    <ul>
+-                                        <li>Truyền nhiệt đối lưu: <span class="tree-math">\( \\frac{dQ}{dt} = h_{conv} A_{surf} (T_{atm} - T_{chamber}) \)</span></li>
+-                                        <li><span class="tree-math">\( \\frac{dP}{dt} = \\frac{\\gamma - 1}{V_{gas}} \\frac{dQ}{dt} - \\frac{\\gamma P}{V_{gas}} \\frac{dV_{gas}}{dt} \)</span></li>
+-                                    </ul>
+-                                </li>
++                                <li><strong>A1: Trong ống phóng</strong> (Lực ma sát O-ring, tụt áp)</li>
++                                <li><strong>A2: Đã rời ống phóng</strong> (Áp suất đáy, lưu lượng khối lượng nước, lực đẩy nước)</li>
++                                <li><strong>Nhiệt Động Học Pha A</strong> (Khí nén đẩy nước, trao đổi nhiệt)</li>
+                             </ul>
+                         </li>
+                         <li>
+-                            <span class="tree-title">[PHA B]: HẾT NƯỚC, CÒN KHÍ (else if \( P > P_{atm} \))</span>
++                            <span class="tree-title">[PHA B]: HẾT NƯỚC, CÒN KHÍ (else if P > P_atm)</span>
+                             <ul>
+-                                <li><strong>B1: Choked Flow (Nghẹt - Siêu âm)</strong>
+-                                    <ul>
+-                                        <li><span class="tree-math">\( \\frac{dm_{air}}{dt} = -C_d A_e P \\sqrt{\\frac{\\gamma}{R T}} \\left(\\frac{2}{\\gamma+1}\\right)^{\\frac{\\gamma+1}{2(\\gamma-1)}} \)</span></li>
+-                                        <li><span class="tree-math">\( Thrust = \\left|\\frac{dm_{air}}{dt}\\right| v_{gas} + (P_{exit} - P_{atm})A_e \)</span></li>
+-                                    </ul>
+-                                </li>
+-                                <li><strong>B2: Subsonic Flow (Dưới âm)</strong>
+-                                    <ul>
+-                                        <li><span class="tree-math">\( Mach = \\sqrt{\\frac{2}{\\gamma - 1} \\left(\\left(\\frac{P}{P_{atm}}\\right)^{\\frac{\\gamma-1}{\\gamma}} - 1\\right)} \)</span></li>
+-                                        <li><span class="tree-math">\( Thrust = \\left|\\frac{dm_{air}}{dt}\\right| v_{gas} \)</span></li>
+-                                    </ul>
+-                                </li>
++                                <li><strong>B1: Dùng Hóa Học</strong> (Tốc độ phản ứng sinh khí)</li>
++                                <li><strong>B2: Dùng Khí Nén Xả Trực Tiếp</strong> (Nghẹt/Choked Flow hoặc Dưới âm/Subsonic flow)</li>
++                                <li><strong>Nhiệt Động Học Pha B</strong> (Khí tự xả làm lạnh buồng đốt)</li>
++                            </ul>
++                        </li>
++                        <li>
++                            <span class="tree-title">[PHA C]: BAY TỰ DO / COASTING (else)</span>
++                            <ul>
++                                <li>Lực đẩy = 0, áp suất cân bằng với môi trường</li>
+                             </ul>
+                         </li>
+                     </ul>
+                 </li>
+                 <li>
+-                    <span class="tree-title">5. TỔNG HỢP GIA TỐC (NEWTON 2)</span>
++                    <span class="tree-title">5. TỔNG HỢP GIA TỐC BƯỚC NHẢY (NEWTON 2)</span>
+                     <ul>
+-                        <li><span class="tree-math">\( a_x = \\frac{Thrust \\cdot \\cos(\\theta) - F_d \\cdot \\cos(\\theta)}{m_{total}} \)</span></li>
+-                        <li><span class="tree-math">\( a_y = \\frac{Thrust \\cdot \\sin(\\theta) - F_d \\cdot \\sin(\\theta)}{m_{total}} - g \)</span></li>
++                        <li>Khối lượng tổng: m_total = m_empty + m_w + m_air</li>
++                        <li>Ràng buộc mặt đất (chống lún)</li>
++                        <li>Bay tự do (Thrust, F_d, Gravity)</li>
+                     </ul>
+                 </li>
+-                <li class="tree-head" style="margin-top: 15px;">&#10142; return [vx, vy, ax, ay, dm_w_dt, dP_dt]</li>
+             </ul>
++            <p><strong>OUTPUT:</strong> Trả về các đạo hàm [vx, vy, ax, ay, dm_w/dt, dP/dt]</p>
+             </div>
+         </div>
+     </div>
+
+-
+-
+-    <script>
+-
+-// Hằng số vật lý chuẩn SI
+-const Constants = {
+-    g: 9.80665, // m/s^2
+-    R_air: 287.05, // J/(kg*K) cho không khí
+-    gamma_air: 1.4, // Tỷ số nhiệt dung
+-    P_atm: 101325.0, // Pa (áp suất khí quyển tiêu chuẩn)
+-    rho_w: 1000.0, // kg/m^3 (khối lượng riêng của nước)
+-    E_pet: 2.0e9, // Pa (Mô đun Young của nhựa PET)
+-    t_wall: 0.0005 // m (Độ dày thành chai 0.5mm)
+-};
+-
+-// Hàm tiện ích chuyển đổi đơn vị
+-function psi_to_pa(psi) { return psi * 6894.757; }
+-function pa_to_psi(pa) { return pa / 6894.757; }
+-
+-class DerivativeEngine {
+-    constructor(params) {
+-        this.params = params;
+-    }
+-
+-    compute(t, state) {
+-        let out = {};
+-        out.dx = state.vx;
+-        out.dy = state.vy;
+-
+-        const C_d_base = this.params.in_cd;
+-        const D = this.params.in_d_body / 1000.0;
+-        const A_c = Math.PI * (D / 2.0) * (D / 2.0);
+-        const D_e = this.params.in_d_nozzle / 1000.0;
+-        const A_e = Math.PI * (D_e / 2.0) * (D_e / 2.0);
+-        const rho_air = this.params.in_env;
+-        const V_0 = this.params.in_v_bottle / 1000.0;
+-        const L_tube = this.params.in_l_tube;
+-
+-        const v_mag = Math.sqrt(state.vx*state.vx + state.vy*state.vy);
+-        const dist = Math.sqrt(state.x*state.x + state.y*state.y);
+-
+-        let cos_th, sin_th;
+-        if (v_mag > 1e-9) {
+-            cos_th = state.vx / v_mag;
+-            sin_th = state.vy / v_mag;
+-        } else {
+-            cos_th = Math.cos(this.params.in_angle * Math.PI / 180.0);
+-            sin_th = Math.sin(this.params.in_angle * Math.PI / 180.0);
+-        }
+-
+-        const L_rocket = this.params.in_l_rocket / 1000.0;
+-        const m_empty_total = this.params.in_m_empty + this.params.in_m_ballast;
+-        const CoM_empty = 0.5 * L_rocket;
+-        const CoM_water = L_rocket - 0.1;
+-        const CoM_total = (m_empty_total * CoM_empty + state.m_w * CoM_water) / (m_empty_total + state.m_w);
+-        const CoP = L_rocket * 0.7;
+-        const sm = (CoP - CoM_total) / D;
+-
+-        let wobble_factor = 1.0;
+-        if (sm < 1.0) wobble_factor = 1.0 + (1.0 - sm) * 0.5;
+-        if (v_mag < 15.0) wobble_factor += 0.2;
+-
+-        const C_d_eff = C_d_base * wobble_factor;
+-        out.Fd = 0.5 * rho_air * C_d_eff * A_c * v_mag * v_mag;
+-        out.sm = sm;
+-        out.com = CoM_total;
+-        out.cop = CoP;
+-
+-        out.a_longitudinal = (state.a_prev_x * cos_th) + ((state.a_prev_y + Constants.g) * sin_th);
+-
+-        out.dV_elastic = V_0 * (state.P - Constants.P_atm) * (D / (2 * Constants.E_pet * Constants.t_wall));
+-        if (out.dV_elastic < 0) out.dV_elastic = 0;
+-
+-        let Thrust = 0;
+-        let dm_w_dt = 0;
+-        let dP_dt = 0;
+-        let dm_air_dt = 0;
+-
+-        let V_gas = V_0 + out.dV_elastic - (state.m_w / Constants.rho_w);
+-        if (V_gas < 0.0001) V_gas = 0.0001;
+-        let T_chamber = (state.P * V_gas) / (state.m_air * Constants.R_air);
+-        out.temp = T_chamber - 273.15;
+-
+-        const A_surf = Math.PI * D * (L_rocket * 0.8);
+-        const T_atm = this.params.in_temp + 273.15;
+-        const h_conv = 20.0;
+-        const dQ_dt = h_conv * A_surf * (T_atm - T_chamber);
+-
+-        if (state.m_w > 0) {
+-            if (dist < L_tube) {
+-                const D_tube = this.params.in_d_tube / 1000.0;
+-                const A_tube = Math.PI * (D_tube / 2.0) * (D_tube / 2.0);
+-                Thrust = (state.P - Constants.P_atm) * A_tube;
+-                if (Thrust < 0) Thrust = 0;
+-                dm_w_dt = 0;
+-                dP_dt = - (Constants.gamma_air * state.P / V_gas) * (A_tube * v_mag);
+-            } else {
+-                const h_water = state.m_w / (Constants.rho_w * A_c);
+-                const P_bottom = (state.P - Constants.P_atm) + (Constants.rho_w * out.a_longitudinal * h_water);
+-                if (P_bottom > 0) {
+-                    const v_e = Math.sqrt(2.0 * P_bottom / Constants.rho_w);
+-                    const C_d_nozzle = 0.98;
+-                    dm_w_dt = -C_d_nozzle * A_e * Constants.rho_w * v_e;
+-                    Thrust = Math.abs(dm_w_dt) * v_e;
+-                }
+-                const dV_gas_dt = -dm_w_dt / Constants.rho_w;
+-                dP_dt = ((Constants.gamma_air - 1.0) / V_gas) * dQ_dt - (Constants.gamma_air * state.P / V_gas) * dV_gas_dt;
+-            }
+-        } else if (state.P > Constants.P_atm * 1.01) {
+-            V_gas = V_0 + out.dV_elastic;
+-            const p_ratio = Constants.P_atm / state.P;
+-            const C_d_air = 0.8;
+-
+-            if (p_ratio < 0.528) {
+-                const term = Math.pow(2.0 / (Constants.gamma_air + 1.0), (Constants.gamma_air + 1.0) / (2.0 * (Constants.gamma_air - 1.0)));
+-                dm_air_dt = -C_d_air * A_e * state.P * Math.sqrt(Constants.gamma_air / (Constants.R_air * T_chamber)) * term;
+-                const P_exit = state.P * Math.pow(2.0 / (Constants.gamma_air + 1.0), Constants.gamma_air / (Constants.gamma_air - 1.0));
+-                const v_exit = Math.sqrt(Constants.gamma_air * Constants.R_air * T_chamber * (2.0 / (Constants.gamma_air + 1.0)));
+-                Thrust = Math.abs(dm_air_dt) * v_exit + (P_exit - Constants.P_atm) * A_e;
+-            } else {
+-                const Mach = Math.sqrt((2.0 / (Constants.gamma_air - 1.0)) * (Math.pow(state.P / Constants.P_atm, (Constants.gamma_air - 1.0) / Constants.gamma_air) - 1.0));
+-                const T_exit = T_chamber / Math.pow(state.P / Constants.P_atm, (Constants.gamma_air - 1.0) / Constants.gamma_air);
+-                const v_exit = Mach * Math.sqrt(Constants.gamma_air * Constants.R_air * T_exit);
+-                const rho_exit = Constants.P_atm / (Constants.R_air * T_exit);
+-                dm_air_dt = -C_d_air * A_e * rho_exit * v_exit;
+-                Thrust = Math.abs(dm_air_dt) * v_exit;
+-            }
+-            dP_dt = (Constants.gamma_air * Constants.R_air * T_chamber / V_gas) * dm_air_dt + ((Constants.gamma_air - 1.0) / V_gas) * dQ_dt;
+-        } else {
+-            Thrust = 0;
+-            dm_w_dt = 0;
+-            dm_air_dt = 0;
+-            dP_dt = 0;
+-            out.temp = T_atm - 273.15;
+-        }
+-
+-        out.Thrust = Thrust;
+-        out.dm_w = dm_w_dt;
+-        out.dP = dP_dt;
+-        out.dm_air = dm_air_dt;
+-
+-        const m_total = m_empty_total + state.m_w + state.m_air;
+-        let ax = 0, ay = 0;
+-
+-        if (dist < L_tube && dist < 0.001 && Thrust == 0 && state.P <= Constants.P_atm * 1.01) {
+-             ax = 0; ay = 0;
+-        } else if (dist < L_tube) {
+-            const theta_0 = this.params.in_angle * Math.PI / 180.0;
+-            let a_net = (Thrust - out.Fd) / m_total - Constants.g * Math.sin(theta_0);
+-            if (a_net < 0 && dist == 0) a_net = 0;
+-            ax = a_net * Math.cos(theta_0);
+-            ay = a_net * Math.sin(theta_0);
+-        } else {
+-            ax = (Thrust * cos_th - out.Fd * cos_th) / m_total;
+-            ay = (Thrust * sin_th - out.Fd * sin_th) / m_total - Constants.g;
+-        }
+-
+-        out.dvx = ax;
+-        out.dvy = ay;
+-
+-        return out;
+-    }
+-}
+-
+-class RK45Integrator {
+-    static step(state, dt, engine) {
+-        const out_derivs = engine.compute(0.0, state);
+-
+-        state.x += out_derivs.dx * dt;
+-        state.y += out_derivs.dy * dt;
+-        state.vx += out_derivs.dvx * dt;
+-        state.vy += out_derivs.dvy * dt;
+-        state.m_w += out_derivs.dm_w * dt;
+-        state.P += out_derivs.dP * dt;
+-        state.m_air += out_derivs.dm_air * dt;
+-
+-        if (state.m_w < 0) state.m_w = 0;
+-        if (state.P < Constants.P_atm) state.P = Constants.P_atm;
+-        if (state.m_air < 0) state.m_air = 0;
+-
+-        state.a_prev_x = out_derivs.dvx;
+-        state.a_prev_y = out_derivs.dvy;
+-
+-        return out_derivs;
+-    }
+-}
+-
+-class RocketSimulation {
+-    constructor(params) {
+-        this.params = params;
+-        this.engine = new DerivativeEngine(params);
+-    }
+-
+-    run() {
+-        let res = {
+-            isError: false,
+-            sys_status: "BÌNH THƯỜNG",
+-            val_range: 0,
+-            val_ideal_range: 0,
+-            val_apogee: 0,
+-            val_max_v: 0,
+-            val_flight_time: 0,
+-            val_burn_time: 0,
+-            val_cork_friction: 0,
+-            t: [], x: [], y: [], v: [], a: [], T: [], P: [], m: [], mdot: [], temp: [], dV: [], Fd: [], com: [], cop: [], sm: [], dt: []
+-        };
+-
+-        let state = {
+-            x: 0, y: 0, vx: 0, vy: 0,
+-            a_prev_x: 0, a_prev_y: 0,
+-            m_w: 0, P: 0, m_air: 0
+-        };
+-
+-        const V_bottle = this.params.in_v_bottle / 1000.0;
+-
+-        if (this.params.in_mode === "AIR") {
+-            const v_water = V_bottle * (this.params.in_water_ratio / 100.0);
+-            state.m_w = v_water * Constants.rho_w;
+-            state.P = psi_to_pa(this.params.in_pressure) + Constants.P_atm;
+-            if (state.P > psi_to_pa(this.params.in_burst) + Constants.P_atm) {
+-                res.isError = true;
+-                res.sys_status = `CHAI NỔ (${pa_to_psi(state.P - Constants.P_atm).toFixed(1)} PSI > Giới hạn ${this.params.in_burst} PSI)`;
+-                return res;
+-            }
+-        } else {
+-            const vol_vinegar_m3 = this.params.in_vol_vinegar / 1000000.0;
+-            state.m_w = vol_vinegar_m3 * Constants.rho_w;
+-
+-            const molar_mass_salt = parseFloat(this.params.in_salt_type);
+-            const moles_salt = this.params.in_mass_salt / molar_mass_salt;
+-            const mass_acid = (this.params.in_vol_vinegar * this.params.in_acid_conc / 100.0);
+-            const moles_acid = mass_acid / 60.0;
+-
+-            let moles_co2 = (molar_mass_salt === 106.0) ? Math.min(moles_salt, moles_acid / 2.0) : Math.min(moles_salt, moles_acid);
+-            moles_co2 *= (this.params.in_gas_eff / 100.0);
+-
+-            const V_gas_initial = V_bottle - vol_vinegar_m3;
+-            const T_initial = this.params.in_temp + 273.15;
+-            const P_ideal = (moles_co2 * 8.314 * T_initial) / V_gas_initial + Constants.P_atm;
+-
+-            const P_popoff = psi_to_pa(this.params.in_popoff) + Constants.P_atm;
+-            if (P_ideal < P_popoff) {
+-                state.P = P_ideal;
+-                res.isError = true;
+-                res.sys_status = `KHÔNG THỂ CẤT CÁNH (${pa_to_psi(P_ideal - Constants.P_atm).toFixed(1)} PSI < BUNG NÚT ${pa_to_psi(P_popoff - Constants.P_atm).toFixed(1)} PSI)`;
+-                return res;
+-            }
+-            state.P = P_popoff;
+-            if (state.P > psi_to_pa(this.params.in_burst) + Constants.P_atm) {
+-                res.isError = true;
+-                res.sys_status = `CHAI NỔ (${pa_to_psi(state.P - Constants.P_atm).toFixed(1)} PSI > Giới hạn ${this.params.in_burst} PSI)`;
+-                return res;
+-            }
+-        }
+-
+-        const V_gas = V_bottle - (state.m_w / Constants.rho_w);
+-        const T_initial = this.params.in_temp + 273.15;
+-        state.m_air = (state.P * V_gas) / (Constants.R_air * T_initial);
+-
+-        const A_e = Math.PI * Math.pow(this.params.in_d_nozzle / 2000.0, 2);
+-        res.val_cork_friction = (state.P - Constants.P_atm) * A_e / Constants.g;
+-
+-        let current_t = 0.0;
+-        let dt = 0.001;
+-        const max_time = 30.0;
+-
+-        let apogee = 0;
+-        let max_v = 0;
+-        let burn_time = 0;
+-        let motor_burnout = false;
+-
+-        let log_counter = 0;
+-        const log_freq = 5;
+-
+-        while (current_t < max_time && state.y >= -0.01) {
+-            const d1 = RK45Integrator.step(state, dt, this.engine);
+-            current_t += dt;
+-
+-            if (!motor_burnout && d1.Thrust <= 0.001 && current_t > 0.1) {
+-                motor_burnout = true;
+-                burn_time = current_t;
+-            }
+-
+-            const v_mag = Math.sqrt(state.vx*state.vx + state.vy*state.vy);
+-            if (state.y > apogee) apogee = state.y;
+-            if (v_mag > max_v) max_v = v_mag;
+-
+-            if (log_counter % log_freq === 0) {
+-                res.t.push(current_t);
+-                res.x.push(state.x);
+-                res.y.push(state.y);
+-                res.v.push(v_mag);
+-                res.a.push(Math.sqrt(d1.dvx*d1.dvx + d1.dvy*d1.dvy));
+-                res.T.push(d1.Thrust);
+-                res.P.push(pa_to_psi(state.P - Constants.P_atm));
+-                res.m.push(this.params.in_m_empty + this.params.in_m_ballast + state.m_w + state.m_air);
+-                res.mdot.push(Math.abs(d1.dm_w) + Math.abs(d1.dm_air));
+-                res.temp.push(d1.temp);
+-                res.dV.push(d1.dV_elastic * 1000.0);
+-                res.Fd.push(d1.Fd);
+-                res.com.push(d1.com);
+-                res.cop.push(d1.cop);
+-                res.sm.push(d1.sm);
+-                res.dt.push(dt);
+-            }
+-            log_counter++;
+-
+-            if (state.y < 0 && current_t > 0.5) break;
+-        }
+-
+-        res.val_range = state.x;
+-        res.val_ideal_range = (max_v * max_v * Math.sin(2 * this.params.in_angle * Math.PI / 180.0)) / Constants.g;
+-        if (res.val_ideal_range < 0) res.val_ideal_range = 0;
+-        res.val_apogee = apogee;
+-        res.val_max_v = max_v;
+-        res.val_flight_time = current_t;
+-        res.val_burn_time = burn_time;
+-
+-        return res;
+-    }
+-}
+-
+-function run_simulation(input) {
+-    const sim = new RocketSimulation(input);
+-    return sim.run();
+-}
+-
+-
+-// --- GLOBAL VARIABLES ---
+-let chartMain = null;
+-
+-// --- INITIALIZATION ---
+-
+-
+-// --- THEME LOGIC ---
+-function setTheme(theme) {
+-    if (theme === 'system') {
+-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+-            document.documentElement.setAttribute('data-theme', 'dark');
+-        } else {
+-            document.documentElement.setAttribute('data-theme', 'light');
+-        }
+-    } else {
+-        document.documentElement.setAttribute('data-theme', theme);
+-    }
+-    if (chartMain) {
+-        initChart(); // Re-initialize chart to pick up new CSS variables
+-        runSimUI(); // Redraw
+-    }
+-}
+-// Listen for system theme changes
+-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+-    if (document.getElementById('sel-theme').value === 'system') {
+-        setTheme('system');
+-    }
+-});
+-// Set default on load
+-document.addEventListener("DOMContentLoaded", () => {
+-    setTheme('light');
+-
+-});
+-
+-document.addEventListener("DOMContentLoaded", () => {
+-    initChart();
+-    toggleMode(); // Setup initial UI state
+-
+-    // Initialize WASM Engine
+-    if (typeof createModule === 'function') {
+-        createModule().then((module) => {
+-            wasmEngine = module;
+-            console.log("WASM Engine Loaded:", wasmEngine);
+-            runSimUI(); // Run initial simulation once engine is loaded
+-        });
+-    } else {
+-        console.error("WASM module 'createModule' not found. Did physics.js load?");
+-        runSimUI(); // Fallback if WASM not available
+-    }
+-});
+-
+-// --- UI LOGIC ---
+-
+-function toggleMode() {
+-    const mode = document.getElementById("in-mode").value;
+-    const fsAir = document.getElementById("fs-air");
+-    const fsChem = document.getElementById("fs-chem");
+-    const cardFriction = document.getElementById("card-friction");
+-
+-    if (mode === "AIR") {
+-        fsAir.style.display = "block";
+-        fsChem.style.display = "none";
+-        cardFriction.style.display = "none";
+-    } else {
+-        fsAir.style.display = "none";
+-        fsChem.style.display = "block";
+-        cardFriction.style.display = "block";
+-    }
+-}
+-
+-function toggleLock(btn) {
+-    if (btn.innerText === "KHÓA") {
+-        btn.innerText = "MỞ";
+-        btn.classList.add("unlocked");
+-    } else {
+-        btn.innerText = "KHÓA";
+-        btn.classList.remove("unlocked");
+-    }
+-}
+-
+-function closeModal() {
+-    document.getElementById("eq-modal").style.display = "none";
+-}
+-
+-window.onclick = function(event) {
+-    const modal = document.getElementById("eq-modal");
+-    if (event.target == modal) {
+-        modal.style.display = "none";
+-    }
+-}
+-
+-// --- SIMULATION (MOCK FOR NOW, INTENDED FOR WASM) ---
+-
+-function getInputs() {
+-    // This function gathers all inputs into an object that would be passed to the WASM engine
+-    return {
+-        mode: document.getElementById("in-mode").value,
+-        geometry: {
+-            vBottle: parseFloat(document.getElementById("in-v-bottle").value),
+-            lRocket: parseFloat(document.getElementById("in-l-rocket").value),
+-            dBody: parseFloat(document.getElementById("in-d-body").value),
+-            mEmpty: parseFloat(document.getElementById("in-m-empty").value),
+-            mBallast: parseFloat(document.getElementById("in-m-ballast").value),
+-            finRoot: parseFloat(document.getElementById("in-fin-root").value),
+-            finTip: parseFloat(document.getElementById("in-fin-tip").value),
+-            finSpan: parseFloat(document.getElementById("in-fin-span").value),
+-        },
+-        air: {
+-            waterRatio: parseFloat(document.getElementById("in-water-ratio").value),
+-            pressure: parseFloat(document.getElementById("in-pressure").value),
+-            burst: parseFloat(document.getElementById("in-burst").value),
+-        },
+-        chem: {
+-            saltType: document.getElementById("in-salt-type").value,
+-            massSalt: parseFloat(document.getElementById("in-mass-salt").value),
+-            volVinegar: parseFloat(document.getElementById("in-vol-vinegar").value),
+-            acidConc: parseFloat(document.getElementById("in-acid-conc").value),
+-            gasEff: parseFloat(document.getElementById("in-gas-eff").value),
+-            popoff: parseFloat(document.getElementById("in-popoff").value),
+-        },
+-        thrust: {
+-            dNozzle: parseFloat(document.getElementById("in-d-nozzle").value),
+-            lTube: parseFloat(document.getElementById("in-l-tube").value),
+-            dTube: parseFloat(document.getElementById("in-d-tube").value),
+-        },
+-        env: {
+-            angle: parseFloat(document.getElementById("in-angle").value),
+-            cd: parseFloat(document.getElementById("in-cd").value),
+-            temp: parseFloat(document.getElementById("in-temp").value),
+-            density: parseFloat(document.getElementById("in-env").value),
+-        }
+-    };
+-}
+-
+-function setStatus(msg, isError = false) {
+-    const el = document.getElementById("sys-status");
+-    el.innerText = "TRẠNG THÁI HỆ THỐNG: " + msg;
+-    if (isError) {
+-        el.classList.add("error");
+-    } else {
+-        el.classList.remove("error");
+-    }
+-}
+-
+-function runSimUI() {
+-
+-    console.log("runSimUI() called. Inputs changed.");
+-
+-    // 1. Gather Inputs
+-    const mode = document.getElementById('in-mode').value;
+-
+-    let simInput = {
+-        in_mode: mode,
+-        in_v_bottle: parseFloat(document.getElementById('in-v-bottle').value),
+-        in_l_rocket: parseFloat(document.getElementById('in-l-rocket').value),
+-        in_fin_root: parseFloat(document.getElementById('in-fin-root').value),
+-        in_fin_tip: parseFloat(document.getElementById('in-fin-tip').value),
+-        in_fin_span: parseFloat(document.getElementById('in-fin-span').value),
+-        in_d_body: parseFloat(document.getElementById('in-d-body').value),
+-        in_m_empty: parseFloat(document.getElementById('in-m-empty').value),
+-        in_m_ballast: parseFloat(document.getElementById('in-m-ballast').value),
+-        in_water_ratio: parseFloat(document.getElementById('in-water-ratio').value),
+-        in_pressure: parseFloat(document.getElementById('in-pressure').value),
+-        in_burst: parseFloat(document.getElementById('in-burst').value),
+-        in_salt_type: document.getElementById('in-salt-type').value,
+-        in_mass_salt: parseFloat(document.getElementById('in-mass-salt').value),
+-        in_vol_vinegar: parseFloat(document.getElementById('in-vol-vinegar').value),
+-        in_acid_conc: parseFloat(document.getElementById('in-acid-conc').value),
+-        in_gas_eff: parseFloat(document.getElementById('in-gas-eff').value),
+-        in_popoff: parseFloat(document.getElementById('in-popoff').value),
+-        in_d_nozzle: parseFloat(document.getElementById('in-d-nozzle').value),
+-        in_l_tube: parseFloat(document.getElementById('in-l-tube').value),
+-        in_d_tube: parseFloat(document.getElementById('in-d-tube').value),
+-        in_angle: parseFloat(document.getElementById('in-angle').value),
+-        in_cd: parseFloat(document.getElementById('in-cd').value),
+-        in_temp: parseFloat(document.getElementById('in-temp').value),
+-        in_env: parseFloat(document.getElementById('in-env').value)
+-    };
+-
+-    try {
+-        // 2. Call WASM Engine
+-        const result = run_simulation(simInput);
+-
+-        // 3. Update Status
+-        setStatus(result.sys_status, result.isError);
+-
+-        // 4. Update Top Stats Grid
+-        document.getElementById('val-range').innerText = result.val_range.toFixed(2) + " m";
+-        document.getElementById('val-ideal-range').innerText = result.val_ideal_range.toFixed(2) + " m";
+-        document.getElementById('val-apogee').innerText = result.val_apogee.toFixed(2) + " m";
+-        document.getElementById('val-max-v').innerText = result.val_max_v.toFixed(2) + " m/s";
+-        document.getElementById('val-flight-time').innerText = result.val_flight_time.toFixed(2) + " s";
+-        document.getElementById('val-burn-time').innerText = result.val_burn_time.toFixed(3) + " s";
+-
+-        if (mode === "CHEM") {
+-            document.getElementById("val-cork-friction").innerText = result.val_cork_friction.toFixed(2) + " kgf";
+-        }
+-
+-        const arrays = result;
+-
+-        // 6. Update Chart
+-        window.lastDataArrays = arrays; updateChart(arrays);
+-
+-        // Important: free up memory from WASM
+-
+-
+-    } catch (e) {
+-        console.error("Simulation error:", e);
+-        setStatus("SIMULATION ERROR", true);
+-    }
+-}
+-
+-// --- SIMPLE RANDOM SEARCH OPTIMIZER (Replacing CMA-ES for JS) ---
+-function optimizeRange() {
+-    console.log("Optimizer Triggered");
+-
+-    // Find all unlocked inputs
+-    const inputs = document.querySelectorAll('#controls input[type="number"]');
+-    const unlockedInputs = [];
+-    inputs.forEach(input => {
+-        const btn = input.nextElementSibling;
+-        if (btn && btn.classList.contains('unlocked')) {
+-            unlockedInputs.push(input);
+-        }
+-    });
+-
+-    if (unlockedInputs.length === 0) {
+-        alert("Vui lòng mở khóa (MỞ) ít nhất một thông số để tối ưu hóa.");
+-        return;
+-    }
+-
+-    alert("Đang chạy thuật toán tối ưu hóa...");
+-
+-    // Simple random search since full CMA-ES in JS is complex and might freeze UI
+-    // We will do 500 iterations of random mutations around current values
+-    let bestRange = -1;
+-    let bestParams = {};
+-
+-    // Save original state
+-    const originalParams = {};
+-    unlockedInputs.forEach(input => {
+-        originalParams[input.id] = parseFloat(input.value);
+-        bestParams[input.id] = parseFloat(input.value);
+-    });
+-
+-    // Run baseline
+-    const baselineResult = run_simulation();
+-    if (!baselineResult.isError) {
+-        bestRange = baselineResult.range;
+-    }
+-
+-    const iterations = 500;
+-    for (let i = 0; i < iterations; i++) {
+-        // Mutate unlocked parameters
+-        unlockedInputs.forEach(input => {
+-            const currentVal = originalParams[input.id];
+-            // Random mutation +/- 20%
+-            const mutation = currentVal * 0.2 * (Math.random() * 2 - 1);
+-            let newVal = currentVal + mutation;
+-
+-            // Constrain
+-            if (newVal < 0) newVal = 0.001;
+-
+-            input.value = newVal.toFixed(3);
+-        });
+-
+-        // Test new params
+-        const result = run_simulation();
+-        if (!result.isError && result.range > bestRange) {
+-            bestRange = result.range;
+-            unlockedInputs.forEach(input => {
+-                bestParams[input.id] = parseFloat(input.value);
+-            });
+-        }
+-    }
+-
+-    // Apply best params
+-    unlockedInputs.forEach(input => {
+-        input.value = bestParams[input.id].toFixed(3);
+-    });
+-
+-    // Final run to update UI
+-    runSimUI();
+-    alert(`Tối ưu hóa hoàn tất. Tầm xa lớn nhất tìm thấy: ${bestRange.toFixed(2)} m`);
+-}
+-
+-// --- CHART.JS INTEGRATION ---
+-
+-// Custom Sticky Tooltip Plugin
+-const getOrCreateTooltip = (chart) => {
+-  let tooltipEl = chart.canvas.parentNode.querySelector('div.custom-chart-tooltip');
+-
+-  if (!tooltipEl) {
+-    tooltipEl = document.createElement('div');
+-    tooltipEl.classList.add('custom-chart-tooltip');
+-    tooltipEl.style.opacity = 1; // Always show when pinned
+-
+-    const table = document.createElement('table');
+-    table.style.margin = '0px';
+-    tooltipEl.appendChild(table);
+-    chart.canvas.parentNode.appendChild(tooltipEl);
+-  }
+-  return tooltipEl;
+-};
+-
+-// Global variable to store pinned tooltip data
+-let pinnedTooltip = null;
+-
+-const stickyTooltipPlugin = {
+-    id: 'stickyTooltip',
+-    afterEvent(chart, args) {
+-        const event = args.event;
+-        if (event.type === 'click') {
+-            const elements = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+-            if (elements.length > 0) {
+-                const element = elements[0];
+-                const datasetIndex = element.datasetIndex;
+-                const index = element.index;
+-
+-                // Toggle pin
+-                if (pinnedTooltip && pinnedTooltip.datasetIndex === datasetIndex && pinnedTooltip.index === index) {
+-                    pinnedTooltip = null; // Unpin
+-                } else {
+-                    pinnedTooltip = { datasetIndex, index, x: event.x, y: event.y }; // Pin new
+-                }
+-                chart.draw(); // Force redraw to render/hide tooltip
+-            }
+-        }
+-    },
+-    afterDraw(chart) {
+-        const tooltipEl = chart.canvas.parentNode.querySelector('div.custom-chart-tooltip');
+-
+-        if (!pinnedTooltip) {
+-            if (tooltipEl) tooltipEl.style.opacity = 0;
+-            return;
+-        }
+-
+-        if (!tooltipEl) return;
+-
+-
+-        // Retrieve the data for the pinned point
+-        const { datasetIndex, index } = pinnedTooltip;
+-        const dataset = chart.data.datasets[datasetIndex];
+-        const dataPoint = dataset.data[index];
+-        const color = dataset.borderColor;
+-        const label = dataset.label;
+-
+-        // Also get global time, range, alt, vel for this index from window.lastDataArrays
+-        let globalInfo = "";
+-        if (window.lastDataArrays) {
+-            globalInfo = `
+-            <tr><td>Thời gian: ${window.lastDataArrays.t[index].toFixed(2)} s</td></tr>
+-            <tr><td style="font-weight:bold;">TẦM XA: ${window.lastDataArrays.x[index].toFixed(2)}</td></tr>
+-            <tr><td style="font-weight:bold;">TẦM CAO: ${window.lastDataArrays.y[index].toFixed(2)}</td></tr>
+-            <tr><td>Vận tốc: ${window.lastDataArrays.v[index].toFixed(2)} m/s</td></tr>
+-            <tr><td style="border-top: 1px solid var(--border-color); margin-top: 5px; padding-top: 5px;"></td></tr>
+-            `;
+-        }
+-
+-        const tableRoot = tooltipEl.querySelector('table');
+-        const xSel = document.getElementById("sel-x-axis");
+-        const xLabelText = xSel.options[xSel.selectedIndex].text;
+-
+-        let innerHtml = `<thead><tr><th style="color:${color}">${label} (${xLabelText} = ${dataPoint.x.toFixed(2)})</th></tr></thead><tbody>`;
+-
+-        innerHtml += globalInfo;
+-
+-        let specialPoint = "";
+-        if (window.lastDataArrays) {
+-            if (index === 0) {
+-                specialPoint = " (Chưa phóng)";
+-            } else if (index === window.lastDataArrays.t.length - 1) {
+-                specialPoint = " (Landing! TGFuZGluZyE=)";
+-            } else if (window.lastDataArrays.y[index] === Math.max(...window.lastDataArrays.y)) {
+-                specialPoint = " (Viễn điểm)";
+-            }
+-        }
+-
+-        innerHtml += `<tr><td style="color:${color}; font-weight:bold;">Giá trị${specialPoint}: ${dataPoint.y.toFixed(2)}</td></tr>`;
+-        innerHtml += `</tbody>`;
+-
+-        tableRoot.innerHTML = innerHtml;
+-
+-
+-        // Position tooltip
+-        const meta = chart.getDatasetMeta(datasetIndex);
+-        const rect = chart.canvas.getBoundingClientRect();
+-
+-        // Ensure point still exists in current view
+-        if(!meta.data[index]) {
+-            pinnedTooltip = null;
+-            tooltipEl.style.opacity = 0;
+-            return;
+-        }
+-
+-        const pointElement = meta.data[index];
+-
+-        // Center the tooltip relative to the point
+-        tooltipEl.style.opacity = 1;
+-        tooltipEl.style.left = pointElement.x + 'px';
+-        tooltipEl.style.top = (pointElement.y - tooltipEl.offsetHeight - 10) + 'px';
+-        tooltipEl.style.borderColor = color;
+-    }
+-};
+-
+-
+-function initChart() {
+-    if (chartMain) chartMain.destroy();
+-    const ctx = document.getElementById('mainChart').getContext('2d');
+-
+-    // Dynamically get CSS variables for colors
+-    const rootStyle = getComputedStyle(document.documentElement);
+-    const accent1 = rootStyle.getPropertyValue('--accent-1').trim() || '#0000ff';
+-    const accent2 = rootStyle.getPropertyValue('--accent-2').trim() || '#ff0000';
+-    const textColor = rootStyle.getPropertyValue('--text-main').trim() || '#000000';
+-
+-    // Set default Chart.js font colors to match theme
+-    Chart.defaults.color = textColor;
+-    Chart.defaults.font.family = "'Roboto Mono', monospace";
+-
+-    chartMain = new Chart(ctx, {
+-        type: 'scatter', // Use scatter for flexible X/Y mapping
+-        plugins: [stickyTooltipPlugin],
+-        data: {
+-            datasets: []
+-        },
+-        options: {
+-            responsive: true,
+-            maintainAspectRatio: false,
+-            animation: false, // Turn off animation for fast re-renders
+-            interaction: {
+-                mode: 'nearest',
+-                intersect: false, // Don't require hovering exactly over the point
+-            },
+-            plugins: {
+-                tooltip: {
+-                    enabled: false, // Disable native tooltip in favor of custom sticky one
+-                },
+-                zoom: {
+-                    pan: {
+-                        enabled: false
+-                    },
+-                    zoom: {
+-                        wheel: { enabled: false },
+-                        pinch: { enabled: true },
+-                        drag: { enabled: true, backgroundColor: 'rgba(0, 0, 0, 0.1)' },
+-                        mode: 'xy'
+-                    }
+-                },
+-                legend: {
+-                    labels: { color: '#e0e6ed' }
+-                }
+-            },
+-            scales: {
+-                x: {
+-                    type: 'linear',
+-                    position: 'bottom',
+-                    title: { display: true, text: 'Trục X', color: '#00f0ff' },
+-                    grid: { color: '#1e2d3d' }
+-                },
+-                y: {
+-                    type: 'linear',
+-                    position: 'left',
+-                    title: { display: true, text: 'Trục Y Chính', color: '#00f0ff' },
+-                    grid: { color: '#1e2d3d' }
+-                },
+-                y2: {
+-                    type: 'linear',
+-                    position: 'right',
+-                    title: { display: true, text: 'Trục Y Phụ', color: '#39ff14' },
+-                    grid: { drawOnChartArea: false }, // Prevent overlapping grid lines
+-                    display: false // Hidden by default
+-                }
+-            }
+-        }
+-    });
+-}
+-
+-function resetZoom() {
+-    if (chartMain) {
+-        chartMain.resetZoom();
+-        pinnedTooltip = null; // Clear pinned tooltip on reset
+-        chartMain.draw();
+-    }
+-}
+-
+-function updateChart(dataArrays) {
+-    if (!chartMain) return;
+-
+-    // Get selected axes
+-    const xKey = document.getElementById("sel-x-axis").value;
+-    const y1Key = document.getElementById("sel-y1-axis").value;
+-    const y2Key = document.getElementById("sel-y2-axis").value;
+-
+-    const datasets = [];
+-
+-    // Map labels for nice display
+-    const axisLabels = {
+-        't': 'Thời gian (s)', 'x': 'Tầm xa (m)',
+-        'y': 'Độ cao (m)', 'v': 'Vận tốc (m/s)', 'a': 'Gia tốc (m/s²)',
+-        'T': 'Lực đẩy (N)', 'P': 'Áp suất (PSI)', 'm': 'Khối lượng (kg)', 'mdot': 'Lưu lượng (kg/s)',
+-        'temp': 'Nhiệt độ (C)', 'dV': 'Thể tích khí (L)', 'Fd': 'Lực cản (N)',
+-        'com': 'Trọng tâm (m)', 'cop': 'Tâm áp suất (m)', 'sm': 'Độ ổn định (Calibers)'
+-    };
+-
+-    // Update X-Axis title
+-    chartMain.options.scales.x.title.text = axisLabels[xKey] || xKey;
+-
+-    // Prepare Primary Dataset (Y1)
+-    if (dataArrays[y1Key]) {
+-        const d1 = [];
+-        for (let i = 0; i < dataArrays[xKey].length; i++) {
+-            d1.push({ x: dataArrays[xKey][i], y: dataArrays[y1Key][i] });
+-        }
+-        datasets.push({
+-            label: axisLabels[y1Key],
+-            data: d1,
+-            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--accent-1').trim() || '#0000ff', // Adaptive
+-            backgroundColor: 'transparent',
+-            pointRadius: 0,
+-            pointHoverRadius: 4,
+-            showLine: true,
+-            borderWidth: 2,
+-            yAxisID: 'y'
+-        });
+-        chartMain.options.scales.y.title.text = axisLabels[y1Key];
+-        chartMain.options.scales.y.display = true;
+-    }
+-
+-    // Prepare Secondary Dataset (Y2)
+-    if (y2Key !== "none" && dataArrays[y2Key]) {
+-        const d2 = [];
+-        for (let i = 0; i < dataArrays[xKey].length; i++) {
+-            d2.push({ x: dataArrays[xKey][i], y: dataArrays[y2Key][i] });
+-        }
+-        datasets.push({
+-            label: axisLabels[y2Key],
+-            data: d2,
+-            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--accent-2').trim() || '#ff0000', // Adaptive
+-            backgroundColor: 'transparent',
+-            pointRadius: 0,
+-            pointHoverRadius: 4,
+-            showLine: true,
+-            borderWidth: 2,
+-            borderDash: [],
+-            yAxisID: 'y2'
+-        });
+-        chartMain.options.scales.y2.title.text = axisLabels[y2Key];
+-        chartMain.options.scales.y2.display = true;
+-    } else {
+-        chartMain.options.scales.y2.display = false;
+-    }
+-
+-    // Unpin tooltip if axes changed
+-    pinnedTooltip = null;
+-
+-    chartMain.data.datasets = datasets;
+-    chartMain.update();
+-}
+-
+-
+-// --- MODAL LOGIC ---
+-window.onclick = function(event) {
+-    if (event.target.classList.contains('modal')) {
+-        event.target.style.display = "none";
+-    }
+-}
+-
+-// --- MOCK DATA GENERATOR (Temporary) ---
+-
+-</script>
+-
+-
+-
+-</body>
+-</html>
+\ No newline at end of file
++    >
+\ No newline at end of file
